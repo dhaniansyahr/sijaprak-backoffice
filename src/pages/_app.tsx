@@ -53,6 +53,9 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 
 import 'src/iconify-bundle/icons-bundle-react'
 
+// ** React Date PIcker Style
+import 'react-datepicker/dist/react-datepicker.css'
+
 // ** Global css styles
 import '../../styles/globals.css'
 
