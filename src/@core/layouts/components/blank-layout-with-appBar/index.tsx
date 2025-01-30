@@ -49,7 +49,7 @@ const BlankLayoutAppBar = () => {
           <Box>
             <Image
               priority
-              src='/images/labdule.jpeg'
+              src='/images/logo.png'
               height='480'
               width='480'
               alt='Hero'
