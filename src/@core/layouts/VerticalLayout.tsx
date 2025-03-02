@@ -21,6 +21,7 @@ import Customizer from 'src/@core/components/customizer'
 import Navigation from './components/vertical/navigation'
 import Footer from './components/shared-components/footer'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
+import { hexToRGBA } from '../utils/hex-to-rgba'
 
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',
@@ -107,7 +108,8 @@ const VerticalLayout = (props: LayoutProps) => {
                 '& > :first-of-type': { height: '100%' }
               }),
               ...(contentWidth === 'boxed' && {
-                mx: 'auto'
+                mx: 'auto',
+                backgroundColor: hexToRGBA('#4C4E64', 0.12)
 
                 // '@media (min-width:1440px)': { maxWidth: 1440 },
                 // '@media (min-width:1200px)': { maxWidth: '100%' }

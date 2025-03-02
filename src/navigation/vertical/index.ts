@@ -45,14 +45,9 @@ const navigation = (): VerticalNavItemsType => {
       sectionTitle: 'Others'
     },
     {
-      title: 'User Management',
-      path: '/user-management',
+      title: 'Role Management',
+      path: '/role-management',
       icon: 'ix:user-management'
-    },
-    {
-      title: 'ACL',
-      path: '/access-control-list',
-      icon: 'bx:universal-access'
     }
   ]
 }
