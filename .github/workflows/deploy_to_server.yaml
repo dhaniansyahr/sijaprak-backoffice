@@ -40,7 +40,7 @@ jobs:
             cd /tms-inf/backoffice
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            git stash
+            git add . && git stash
             git fetch origin staging
             git reset --hard origin/staging 
             pm2 stop tms-inf-backoffice
