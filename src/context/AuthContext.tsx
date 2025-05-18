@@ -46,7 +46,8 @@ const AuthProvider = ({ children }: Props) => {
           .post(authConfig.meEndpoint, {
             token: `${storedToken}`
           })
-          .then(async () => {
+          .then(async res => {
+            console.log('Response Verify Token : ', res)
             api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
             api.defaults.headers.common['Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -75,6 +76,8 @@ const AuthProvider = ({ children }: Props) => {
     api
       .post(authConfig.loginEndpoint, params)
       .then(async response => {
+        console.log('Response : ', response)
+
         window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.content?.token)
 
         setUser({ ...response.data.content?.user, role: 'ADMIN' })

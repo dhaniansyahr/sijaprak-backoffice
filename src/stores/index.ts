@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
 
 import auth from 'src/stores/auth/authSlice'
+import ruanganLaboratorium from 'src/stores/laboratorium/slice'
 
 export const store = configureStore({
   reducer: {
-    auth
+    auth,
+    ruanganLaboratorium
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

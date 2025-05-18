@@ -14,7 +14,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { useForm } from 'react-hook-form'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import DatePicker from 'react-datepicker'
-import DatePickerInputs from 'src/components/templates/custom-inputs/DatePickerInput'
+import DatePickerInputs from 'src/components/templates/custom/DatePickerInput'
 import 'react-datepicker/dist/react-datepicker.css'
 
 const Transition = forwardRef(function Transition(

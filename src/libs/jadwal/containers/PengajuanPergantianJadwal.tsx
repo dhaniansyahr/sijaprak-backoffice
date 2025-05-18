@@ -19,7 +19,7 @@ import { Fragment, useState } from 'react'
 import ReactDatePicker from 'react-datepicker'
 import { useForm } from 'react-hook-form'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import DatePickerInputs from 'src/components/templates/custom-inputs/DatePickerInput'
+import DatePickerInputs from 'src/components/templates/custom/DatePickerInput'
 import DialogConfirmation from '../components/dialogs/DialogConfirmation'
 import { NextRouter, useRouter } from 'next/router'
 
