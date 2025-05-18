@@ -103,7 +103,6 @@ export const useGetRuanganLaboratorium = (id: string, open?: boolean) => {
     await dispatch(getRuanganLaboratorium({ id })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
         setLoading(false)
-        // toast.error(res.payload?.response?.data?.errors?.[0]?.message || res.payload?.response?.data?.message)
 
         return
       }
