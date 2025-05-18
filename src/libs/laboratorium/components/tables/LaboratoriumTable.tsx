@@ -9,24 +9,29 @@ import {
   IconButton,
   Switch,
   TextField,
-  Typography,
-  debounce
+  Typography
 } from '@mui/material'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
-import { useCallback, useEffect, useState } from 'react'
-import 'react-datepicker/dist/react-datepicker.css'
-import CreateLaboratoriumDialog from '../dialogs/CreateLaboratoriumDialog'
-import EditLaboratoriumDialog from '../dialogs/EditLaboratoriumDialog'
-import DetailLaboratoriumDialog from '../dialogs/DetailLaboratoriumDialog'
-import ChangeKepalaLaboratoriumDialog from '../dialogs/ChangeKepalaLaboratoriumDialog'
+import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
+import { useState } from 'react'
+import { RootState } from 'src/stores'
+import { TypedUseSelectorHook } from 'react-redux'
+import { useSelector } from 'react-redux'
+import { TRuanganLaboratorium } from 'src/stores/laboratorium/types'
+import { useGetAllRuanganLaboratorium } from '../../hooks/useRuanganLaboratorium'
+
+// Dialogs
+import DialogCreateRuanganLaboratorium from '../dialogs/DialogCreate'
+import DialogDetailRuanganLaboratorium from '../dialogs/DialogDetail'
+import DialogEditRuanganLaboratorium from '../dialogs/DialogEdit'
+import DialogAssignKepalaLab from '../dialogs/DialogAssignKepalaLab'
+
+const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
 
 export default function LaboratoriumTable() {
-  const [data, setData] = useState<any>()
+  const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
 
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [page, setPage] = useState<number>(1)
-  const [pageSize, setPageSize] = useState<number>(10)
-  const [search, setSearch] = useState<any>('')
+  const { data, isLoading, page, pageSize, setPage, setPageSize, handleSearch } =
+    useGetAllRuanganLaboratorium(isRefresh)
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
@@ -34,14 +39,14 @@ export default function LaboratoriumTable() {
   const [isChangeDialogOpen, setIsChangeDialogOpen] = useState<boolean>(false)
   const [itemSelected, setItemSelected] = useState<any>(null)
 
-  const columns = [
+  const columns: GridColDef<TRuanganLaboratorium>[] = [
     {
       flex: 0.25,
       field: 'no',
       headerName: 'No',
       maxWidth: 80,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: params => {
         return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
       }
     },
@@ -51,8 +56,8 @@ export default function LaboratoriumTable() {
       headerName: 'Nama Ruangan',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.nama}</span>
+      renderCell: params => {
+        return <span>{params.row.nama || '-'}</span>
       }
     },
     {
@@ -61,8 +66,8 @@ export default function LaboratoriumTable() {
       headerName: 'Kepala Lab',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.namaKepala}</span>
+      renderCell: params => {
+        return <span>{params.row.namaKepalaLab || '-'}</span>
       }
     },
     {
@@ -71,8 +76,8 @@ export default function LaboratoriumTable() {
       headerName: 'NIP',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.nip}</span>
+      renderCell: params => {
+        return <span>{params.row.nipKepalaLab || '-'}</span>
       }
     },
     {
@@ -81,8 +86,8 @@ export default function LaboratoriumTable() {
       headerName: 'Lokasi Ruangan',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.namaKepala}</span>
+      renderCell: params => {
+        return <span>{params.row.lokasi || '-'}</span>
       }
     },
     {
@@ -91,8 +96,8 @@ export default function LaboratoriumTable() {
       headerName: 'Is Active',
       minWidth: 160,
       sortable: false,
-      renderCell: () => {
-        return <Switch color='success' />
+      renderCell: params => {
+        return <Switch checked={false} color='success' />
       }
     },
     {
@@ -101,125 +106,38 @@ export default function LaboratoriumTable() {
       headerName: 'ACTION',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: params => {
         return (
-          <div
-            style={{
-              display: 'flex',
-              gap: 2
-            }}
-          >
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
             <IconButton
-              id={params?.row?.id}
               onClick={() => {
                 setIsDetailDialogOpen(true)
-                setItemSelected(params?.row)
+                setItemSelected(params.row)
               }}
             >
               <Icon icon='ph:eye' />
             </IconButton>
             <IconButton
-              id={params?.row?.id}
               onClick={() => {
                 setIsEditDialogOpen(true)
-                setItemSelected(params?.row)
+                setItemSelected(params.row)
               }}
             >
               <Icon icon='mdi:pencil-outline' />
             </IconButton>
             <IconButton
-              id={params?.row?.id}
               onClick={() => {
                 setIsChangeDialogOpen(true)
-                setItemSelected(params?.row)
+                setItemSelected(params.row)
               }}
             >
               <Icon icon='ic:round-change-circle' />
             </IconButton>
-          </div>
+          </Box>
         )
       }
     }
   ]
-
-  const handleGetAll = async () => {
-    setIsLoading(true)
-
-    // const body = {
-    //   params: {
-    //     page: isPagination ? page : 1,
-    //     rows: pageSize,
-    //     searchFilters: {
-    //       namaKepala: search
-    //     }
-    //   }
-    // } as any
-
-    // if (!search) {
-    //   delete body.params.searchFilters['namaKepala']
-    // }
-
-    // body.params.searchFilters = JSON.stringify(body.params.searchFilters)
-
-    // // @ts-ignore
-    // await dispatch(getAllCentralUnit({ data: body })).then((res: any) => {
-    //   if (
-    //     !(res?.payload?.content?.entries ?? []).some((obj: any) =>
-    //       (data?.entries ?? []).some((newObj: any) => obj.id === newObj.id)
-    //     ) &&
-    //     isPagination
-    //   ) {
-    //     const _entries = [...(data?.entries ?? []), ...(res?.payload?.content?.entries ?? [])]
-    //     setData(Object.assign({}, res?.payload?.content, { entries: _entries }))
-    //   } else {
-    //     if (!res?.payload?.content?.entries?.length && res?.payload?.content?.totalPage === 1) {
-    //       setData(null)
-    //     } else if (!isPagination) {
-    //       setData(res?.payload?.content)
-    //     }
-    //   }
-    // })
-
-    setData({
-      entries: [
-        {
-          id: 1,
-          nama: 'Laboratorium 1',
-          namaKepala: 'Dr. John Doe',
-          nip: '1234567890',
-          lokasi: 'Gedung A Lt. 3'
-        },
-        {
-          id: 2,
-          nama: 'Laboratorium 2',
-          namaKepala: 'Dr. Jane Doe',
-          nip: '9876543210',
-          lokasi: 'Gedung B Lt. 2'
-        }
-      ]
-    })
-
-    setIsLoading(false)
-  }
-
-  const handleSearch = useCallback(
-    debounce((query: any) => {
-      setSearch(query)
-    }, 300),
-    []
-  )
-
-  useEffect(() => {
-    setPage(1)
-
-    handleGetAll()
-  }, [search])
-
-  useEffect(() => {
-    if (page !== 1) {
-      handleGetAll()
-    }
-  }, [page, pageSize])
 
   return (
     <>
@@ -265,7 +183,7 @@ export default function LaboratoriumTable() {
           }}
         />
         <CardContent style={{ paddingInline: '10px' }}>
-          <DataGrid
+          <DataGrid<TRuanganLaboratorium>
             autoHeight
             rows={data?.entries ?? []}
             columns={columns}
@@ -295,21 +213,21 @@ export default function LaboratoriumTable() {
         </CardContent>
       </Card>
 
-      <CreateLaboratoriumDialog open={isCreateDialogOpen} onClose={(v: boolean) => setIsCreateDialogOpen(v)} />
+      <DialogCreateRuanganLaboratorium open={isCreateDialogOpen} onClose={(v: boolean) => setIsCreateDialogOpen(v)} />
 
-      <EditLaboratoriumDialog
+      <DialogEditRuanganLaboratorium
         open={isEditDialogOpen}
         onClose={(v: boolean) => setIsEditDialogOpen(v)}
         values={itemSelected}
       />
 
-      <DetailLaboratoriumDialog
+      <DialogDetailRuanganLaboratorium
         open={isDetailDialogOpen}
         onClose={(v: boolean) => setIsDetailDialogOpen(v)}
         values={itemSelected}
       />
 
-      <ChangeKepalaLaboratoriumDialog
+      <DialogAssignKepalaLab
         open={isChangeDialogOpen}
         onClose={(v: boolean) => setIsChangeDialogOpen(v)}
         values={itemSelected}

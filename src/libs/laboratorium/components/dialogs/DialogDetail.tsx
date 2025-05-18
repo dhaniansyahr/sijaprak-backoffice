@@ -7,10 +7,15 @@ import Fade, { FadeProps } from '@mui/material/Fade'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
+import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
 import React, { ReactElement, Ref, forwardRef, useEffect, useState } from 'react'
 import 'react-datepicker/dist/react-datepicker.css'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import { useGetRuanganLaboratorium } from '../../hooks/useRuanganLaboratorium'
+import { AppDispatch } from 'src/stores'
+import { useDispatch } from 'react-redux'
+import { setIsRefresh } from 'src/stores/laboratorium/slice'
+import { THistoryLabs } from 'src/stores/laboratorium/types'
 
 const Transition = forwardRef(function Transition(
   props: FadeProps & { children?: ReactElement<any, any> },
@@ -19,26 +24,26 @@ const Transition = forwardRef(function Transition(
   return <Fade ref={ref} {...props} />
 })
 
-const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
-  const [isLoading, setIsLoading] = useState(false)
+const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: any) => {
+  const dispatch: AppDispatch = useDispatch()
 
-  const [data, setData] = useState<any>(null)
+  const { data, loading } = useGetRuanganLaboratorium(values?.id, open)
 
   const handleClose = () => {
-    setIsLoading(false)
     onClose(false)
 
     // @ts-ignore
+    dispatch(setIsRefresh())
   }
 
-  const columns = [
+  const columns: GridColDef<THistoryLabs>[] = [
     {
       flex: 0.25,
       field: 'no',
       headerName: 'No',
       maxWidth: 80,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: params => {
         return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
       }
     },
@@ -48,7 +53,7 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
       headerName: 'Nama Kepala Lab',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: params => {
         return <span>{params?.row?.nama}</span>
       }
     },
@@ -58,7 +63,7 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
       headerName: 'Nip Kepala Lab',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: params => {
         return <span>{params?.row?.nip}</span>
       }
     },
@@ -68,36 +73,38 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
       headerName: 'Masa Jabatan',
       minWidth: 160,
       sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.masaJabatan}</span>
+      renderCell: params => {
+        return <span>{'-'}</span>
       }
     }
   ]
 
-  useEffect(() => {
-    setData({
-      entries: [
-        { id: 1, nama: 'John Doe', nip: '123456789', masaJabatan: '2020-2022' },
-        { id: 2, nama: 'Jane Doe', nip: '987654321', masaJabatan: '2018-2020' },
-        { id: 3, nama: 'Alex Smith', nip: '555555555', masaJabatan: '2015-2018' }
-      ],
-      totalData: 3
-    })
-  }, [open])
-
   return (
-    <Dialog fullWidth open={open} maxWidth='md' scroll='body' TransitionComponent={Transition}>
-      <DialogTitle sx={{ mb: 6, px: { xs: 8, sm: 15 }, position: 'relative', backgroundColor: '#F7F7F9' }}>
+    <Dialog
+      fullWidth
+      open={open}
+      maxWidth='md'
+      scroll='body'
+      TransitionComponent={Transition}
+      PaperProps={{
+        sx: {
+          borderRadius: '0px'
+        }
+      }}
+    >
+      <DialogTitle sx={{ mb: 6, px: { xs: 8, sm: 15 }, position: 'relative', backgroundColor: 'primary.dark' }}>
         <IconButton
           onClick={() => {
             handleClose()
           }}
           sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
         >
-          <Icon icon='material-symbols:close' />
+          <Icon icon='material-symbols:close' color='white' />
         </IconButton>
         <Box>
-          <Typography variant='h5'>Detail Ruangan Laboratorium</Typography>
+          <Typography variant='h5' color={'white'}>
+            Detail Ruangan Laboratorium
+          </Typography>
         </Box>
       </DialogTitle>
 
@@ -110,11 +117,11 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
             <Grid container spacing={4}>
               <Grid item xs={4}>
                 <Typography variant='body1' fontWeight='bold'>
-                  Nama Ruangan:
+                  Nama Ruangan
                 </Typography>
               </Grid>
               <Grid item xs={8}>
-                <Typography variant='body1'>{values?.nama}</Typography>
+                <Typography variant='body1'>{data?.nama || '-'}</Typography>
               </Grid>
             </Grid>
           </Grid>
@@ -123,25 +130,25 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
             <Grid container spacing={4}>
               <Grid item xs={4}>
                 <Typography variant='body1' fontWeight='bold'>
-                  Lokasi Ruangan:
+                  Lokasi Ruangan
                 </Typography>
               </Grid>
               <Grid item xs={8}>
-                <Typography variant='body1'>{values?.lokasi}</Typography>
+                <Typography variant='body1'>{data?.lokasi || '-'}</Typography>
               </Grid>
             </Grid>
           </Grid>
 
           <Grid item xs={12}>
-            <DataGrid
+            <DataGrid<THistoryLabs>
               autoHeight
-              rows={data?.entries ?? []}
+              rows={data?.historyLabs ?? []}
               columns={columns}
               disableColumnFilter
               disableColumnMenu
               disableColumnSelector
               hideFooter
-              loading={isLoading}
+              loading={loading}
               slots={{
                 loadingOverlay: CircularProgress
               }}
@@ -158,4 +165,4 @@ const DetailLaboratoriumDialog = ({ open, onClose, values }: any) => {
   )
 }
 
-export default DetailLaboratoriumDialog
+export default DialogDetailRuanganLaboratorium
