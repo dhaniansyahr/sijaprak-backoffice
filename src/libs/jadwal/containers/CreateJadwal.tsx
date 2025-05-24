@@ -19,9 +19,9 @@ import { Fragment, useState } from 'react'
 import ReactDatePicker from 'react-datepicker'
 import { useForm } from 'react-hook-form'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import DatePickerInputs from 'src/components/templates/custom/DatePickerInput'
 import DialogConfirmation from '../components/dialogs/DialogConfirmation'
 import { NextRouter, useRouter } from 'next/router'
+import { DatePickerInputs } from 'src/components/templates/custom/DatePickerInput'
 
 export default function CreateJadwal() {
   const router: NextRouter = useRouter()
@@ -140,7 +140,7 @@ export default function CreateJadwal() {
                   isClearable
                   selected={watch('tanggal') ?? null}
                   dateFormat='yyyy-MM-dd'
-                  customInput={<DatePickerInputs label='Tanggal' placeholderText='YYYY-MM-DD' />}
+                  customInput={<DatePickerInputs label='Tanggal' placeholder='YYYY-MM-DD' />}
                   onChange={(date: any) => setValue('tanggal', date)}
                 />
               </DatePickerWrapper>

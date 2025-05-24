@@ -26,3 +26,9 @@ export type TPagedList<T> = {
   totalData: number
   totalPage: number
 }
+
+export interface IDialogProps {
+  open: boolean
+  onClose: () => void
+  values?: any
+}
