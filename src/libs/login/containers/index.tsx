@@ -10,7 +10,7 @@ export default function LoginPage() {
         <Grid container sx={{ height: '100vh' }}>
           <Grid item sm={6} lg={8} position={'relative'} sx={{ display: { xs: 'none', sm: 'block' } }}>
             <Image
-              src={`/images/login-bg.jpg`}
+              src={`/images/bg-login.jpg`}
               alt='Auth page background'
               width={1000}
               height={800}
