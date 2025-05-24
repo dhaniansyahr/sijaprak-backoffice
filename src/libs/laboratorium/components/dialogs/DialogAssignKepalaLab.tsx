@@ -1,5 +1,8 @@
-import { Icon } from '@iconify/react'
-import { DialogTitle, TextField } from '@mui/material'
+// React Imports
+import React, { ReactElement, Ref, forwardRef, useState } from 'react'
+
+// MUI Imports
+import { CircularProgress, DialogTitle } from '@mui/material'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -9,16 +12,21 @@ import Fade, { FadeProps } from '@mui/material/Fade'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import React, { ReactElement, Ref, forwardRef, useState } from 'react'
+
+// Third Party Imports
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { useDispatch } from 'react-redux'
-import CustomButton from 'src/components/templates/custom/CustomButton'
+import { Icon } from '@iconify/react'
+
+// Component
+import { LoadingButton } from '@mui/lab'
+
 import { CustomTextField } from 'src/components/templates/custom/CustomTextField'
-import { AppDispatch } from 'src/stores'
-import { assignKepalaLab } from 'src/stores/laboratorium/action'
+
+// Redux & Types
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { TAssignKepalaLab, TRuanganLaboratorium } from 'src/stores/laboratorium/types'
+import { useAppDispatch } from 'src/utils/dispatch'
 
 const Transition = forwardRef(function Transition(
   props: FadeProps & { children?: ReactElement<any, any> },
@@ -34,7 +42,7 @@ interface IDialogAssignKepalaLab {
 }
 
 const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab) => {
-  const dispatch: AppDispatch = useDispatch()
+  const dispatch = useAppDispatch()
 
   const { control, reset, handleSubmit } = useForm<TAssignKepalaLab>({
     values: {
@@ -54,7 +62,7 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
     dispatch(setIsRefresh())
   }
 
-  const handleAssign = async (value: TAssignKepalaLab) => {
+  const onSubmit = handleSubmit(async value => {
     setIsLoading(true)
 
     // @ts-ignore
@@ -70,7 +78,7 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
       toast.success(res.payload.message)
       handleClose()
     })
-  }
+  })
 
   return (
     <Dialog
@@ -101,13 +109,7 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
         </Box>
       </DialogTitle>
 
-      <form
-        onSubmit={e => {
-          e.preventDefault()
-
-          handleSubmit(handleAssign)()
-        }}
-      >
+      <form onSubmit={onSubmit}>
         <DialogContent
           sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
           style={{ paddingTop: '5px' }}
@@ -140,9 +142,15 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
           <Button variant='contained' color='secondary' disabled={isLoading} onClick={() => handleClose()}>
             Batal
           </Button>
-          <CustomButton type='submit' loading={isLoading} variant='contained' disabled={isLoading}>
+          <LoadingButton
+            loadingIndicator={<CircularProgress size={20} />}
+            type='submit'
+            loading={isLoading}
+            variant='contained'
+            disabled={isLoading}
+          >
             Simpan
-          </CustomButton>
+          </LoadingButton>
         </DialogActions>
       </form>
     </Dialog>

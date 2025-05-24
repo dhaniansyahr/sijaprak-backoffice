@@ -16,6 +16,7 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+
     // add new line above comment
     'lines-around-comment': [
       'error',
@@ -28,8 +29,10 @@ module.exports = {
         allowArrayStart: true
       }
     ],
+
     // add new line above return
     'newline-before-return': 'error',
+
     // add new line below import
     'import/newline-after-import': [
       'error',
@@ -45,38 +48,38 @@ module.exports = {
           '{}': false
         }
       }
-    ]
+    ],
 
     // Import Order
-    // 'import/order': [
-    //   'error',
-    //   {
-    //     groups: ['builtin', 'external', ['internal', 'parent', 'sibling', 'index'], ['object', 'unknown']],
-    //     pathGroups: [
-    //       {
-    //         pattern: 'react',
-    //         group: 'external',
-    //         position: 'before'
-    //       },
-    //       {
-    //         pattern: 'next/**',
-    //         group: 'external',
-    //         position: 'before'
-    //       },
-    //       {
-    //         pattern: '~/**',
-    //         group: 'external',
-    //         position: 'before'
-    //       },
-    //       {
-    //         pattern: '@/**',
-    //         group: 'internal'
-    //       }
-    //     ],
-    //     pathGroupsExcludedImportTypes: ['react', 'type'],
-    //     'newlines-between': 'always-and-inside-groups'
-    //   }
-    // ]
+    'import/order': [
+      'error',
+      {
+        groups: ['builtin', 'external', ['internal', 'parent', 'sibling', 'index'], ['object', 'unknown']],
+        pathGroups: [
+          {
+            pattern: 'react',
+            group: 'external',
+            position: 'before'
+          },
+          {
+            pattern: 'next/**',
+            group: 'external',
+            position: 'before'
+          },
+          {
+            pattern: '~/**',
+            group: 'external',
+            position: 'before'
+          },
+          {
+            pattern: '@/**',
+            group: 'internal'
+          }
+        ],
+        pathGroupsExcludedImportTypes: ['react', 'type'],
+        'newlines-between': 'always-and-inside-groups'
+      }
+    ]
   },
   plugins: ['import'],
   settings: {

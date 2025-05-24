@@ -1,4 +1,7 @@
-import { Icon } from '@iconify/react'
+// React Imports
+import { useState } from 'react'
+
+// MUI Imports
 import {
   Box,
   Button,
@@ -12,26 +15,25 @@ import {
   Typography
 } from '@mui/material'
 import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
-import { useState } from 'react'
-import { RootState } from 'src/stores'
-import { TypedUseSelectorHook } from 'react-redux'
-import { useSelector } from 'react-redux'
+
+// Third Party Imports
+import { Icon } from '@iconify/react'
+
+// Hooks & types
 import { TRuanganLaboratorium } from 'src/stores/laboratorium/types'
-import { useGetAllRuanganLaboratorium } from '../../hooks/useRuanganLaboratorium'
+import { useAppSelector } from 'src/utils/dispatch'
 
 // Dialogs
 import DialogCreateRuanganLaboratorium from '../dialogs/DialogCreate'
 import DialogDetailRuanganLaboratorium from '../dialogs/DialogDetail'
 import DialogEditRuanganLaboratorium from '../dialogs/DialogEdit'
 import DialogAssignKepalaLab from '../dialogs/DialogAssignKepalaLab'
-
-const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+import { useGetAllRuangan } from 'src/stores/laboratorium/service'
 
 export default function LaboratoriumTable() {
   const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
 
-  const { data, isLoading, page, pageSize, setPage, setPageSize, handleSearch } =
-    useGetAllRuanganLaboratorium(isRefresh)
+  const { data, isLoadTable, page, pageSize, setPage, setPageSize, handleSearch } = useGetAllRuangan(isRefresh)
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
@@ -161,10 +163,11 @@ export default function LaboratoriumTable() {
           title={
             <Box display={'flex'} flexWrap={'wrap'} gap={'12px'} sx={{ mb: { xs: 8, md: 0 }, width: '100%' }}>
               <TextField
+                fullWidth
                 size='small'
                 placeholder='Cari Nama'
                 onChange={(e: any) => handleSearch(e.target.value)}
-                sx={{ minWidth: 200 }}
+                sx={{ minWidth: 200, pr: 2 }}
               />
             </Box>
           }
@@ -200,7 +203,7 @@ export default function LaboratoriumTable() {
               setPage(newModel.page + 1)
               setPageSize(newModel.pageSize)
             }}
-            loading={isLoading}
+            loading={isLoadTable}
             slots={{
               loadingOverlay: CircularProgress
             }}
@@ -213,17 +216,17 @@ export default function LaboratoriumTable() {
         </CardContent>
       </Card>
 
-      <DialogCreateRuanganLaboratorium open={isCreateDialogOpen} onClose={(v: boolean) => setIsCreateDialogOpen(v)} />
+      <DialogCreateRuanganLaboratorium open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
 
       <DialogEditRuanganLaboratorium
         open={isEditDialogOpen}
-        onClose={(v: boolean) => setIsEditDialogOpen(v)}
+        onClose={() => setIsEditDialogOpen(false)}
         values={itemSelected}
       />
 
       <DialogDetailRuanganLaboratorium
         open={isDetailDialogOpen}
-        onClose={(v: boolean) => setIsDetailDialogOpen(v)}
+        onClose={() => setIsDetailDialogOpen(false)}
         values={itemSelected}
       />
 

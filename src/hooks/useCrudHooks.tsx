@@ -1,9 +1,10 @@
-import { debounce } from '@mui/material'
 import { useCallback, useEffect, useState } from 'react'
+
+import { debounce } from '@mui/material'
 import toast from 'react-hot-toast'
-import { TShift } from 'src/stores/shift/types'
+
 import { useAppDispatch } from 'src/utils/dispatch'
-import { TPagedList, TResponse } from 'src/utils/response.utils'
+import { TPagedList } from 'src/utils/response.utils'
 
 // Generic types
 interface CrudActions<T, TCreate> {
@@ -151,7 +152,7 @@ export const useCreate = <TCreate,>(
 ) => {
   const dispatch = useAppDispatch()
   const [isCreating, setIsCreating] = useState<boolean>(false)
-  const { loadingMessage = 'Loading...' } = options
+  const { loadingMessage = 'Loading...', successMessage } = options
 
   const mutate = async (data: TCreate): Promise<any> => {
     setIsCreating(true)
@@ -161,14 +162,15 @@ export const useCreate = <TCreate,>(
     await dispatch(actions.create({ data })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
         setIsCreating(false)
+        toast.dismiss()
+        toast.error(res.payload.response?.data?.errors?.[0]?.message || res?.payload?.response?.data?.message)
 
-        return res.payload
+        return
       }
 
       setIsCreating(false)
       toast.dismiss()
-
-      return res.payload
+      toast.success(successMessage || res.payload.message)
     })
   }
 
@@ -184,7 +186,7 @@ export const useUpdate = <TUpdate,>(
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const { loadingMessage = 'Loading...', successMessage } = options
 
-  const mutate = async (data: Partial<TUpdate>, id: string) => {
+  const mutate = async (data: Partial<TUpdate>, id: string): Promise<any> => {
     setIsUpdating(true)
     toast.loading(loadingMessage)
 
@@ -199,6 +201,7 @@ export const useUpdate = <TUpdate,>(
       }
 
       setIsUpdating(false)
+
       toast.dismiss()
       toast.success(successMessage || res.payload.message)
     })

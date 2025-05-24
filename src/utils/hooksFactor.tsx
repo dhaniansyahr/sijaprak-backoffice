@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useCreate, useDelete, useGetAll, useGetById, useUpdate } from 'src/hooks/useCrudHooks'
 
 interface HookFactoryConfig<T, TCreate> {
@@ -17,6 +18,19 @@ interface HookFactoryConfig<T, TCreate> {
     createSuccess?: string
     updateSuccess?: string
     deleteSuccess?: string
+  }
+}
+
+interface IReduxHooks<T> {
+  action: {
+    create?: (params: { data: T }) => any
+    update?: (params: { data: Partial<T>; id: string }) => any
+  }
+  method: 'POST' | 'PUT'
+  message?: {
+    pending?: string
+    success?: string
+    error?: string
   }
 }
 
@@ -56,5 +70,27 @@ export const createCrudHooks = <T, TCreate>(config: HookFactoryConfig<T, TCreate
           successMessage: messages.deleteSuccess
         }
       )
+  }
+}
+
+export const createReduxHooks = <T,>(config: IReduxHooks<T>) => {
+  const { action, method, message = {} } = config
+
+  if (method === 'POST') {
+    return useCreate<T>(
+      { create: action.create! },
+      {
+        loadingMessage: message.pending || 'Creating...',
+        successMessage: message.success
+      }
+    )
+  } else {
+    return useUpdate<T>(
+      { update: action.update! },
+      {
+        loadingMessage: message.pending || 'Updating...',
+        successMessage: message.success
+      }
+    )
   }
 }

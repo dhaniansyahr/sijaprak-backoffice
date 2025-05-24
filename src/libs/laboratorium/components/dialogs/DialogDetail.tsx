@@ -1,4 +1,7 @@
-import { Icon } from '@iconify/react'
+// React Imports
+import React, { ReactElement, Ref, forwardRef } from 'react'
+
+// MUI Imports
 import { CircularProgress, DialogTitle } from '@mui/material'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
@@ -8,14 +11,19 @@ import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
-import React, { ReactElement, Ref, forwardRef, useEffect, useState } from 'react'
-import 'react-datepicker/dist/react-datepicker.css'
+
+// Third Party Imports
+import { Icon } from '@iconify/react'
+
+// Utils
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-import { useGetRuanganLaboratorium } from '../../hooks/useRuanganLaboratorium'
-import { AppDispatch } from 'src/stores'
-import { useDispatch } from 'react-redux'
+import { IDialogProps } from 'src/utils/response.utils'
+import { useAppDispatch } from 'src/utils/dispatch'
+
+// Redux Imports
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { THistoryLabs } from 'src/stores/laboratorium/types'
+import { useGetRuangan } from 'src/stores/laboratorium/service'
 
 const Transition = forwardRef(function Transition(
   props: FadeProps & { children?: ReactElement<any, any> },
@@ -24,13 +32,13 @@ const Transition = forwardRef(function Transition(
   return <Fade ref={ref} {...props} />
 })
 
-const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: any) => {
-  const dispatch: AppDispatch = useDispatch()
+const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps) => {
+  const dispatch = useAppDispatch()
 
-  const { data, loading } = useGetRuanganLaboratorium(values?.id, open)
+  const { data, isLoadData } = useGetRuangan(values?.id)
 
   const handleClose = () => {
-    onClose(false)
+    onClose()
 
     // @ts-ignore
     dispatch(setIsRefresh())
@@ -112,54 +120,60 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: any) => {
         sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
         style={{ paddingTop: '5px' }}
       >
-        <Grid container spacing={4}>
-          <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
-            <Grid container spacing={4}>
-              <Grid item xs={4}>
-                <Typography variant='body1' fontWeight='bold'>
-                  Nama Ruangan
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant='body1'>{data?.nama || '-'}</Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
-            <Grid container spacing={4}>
-              <Grid item xs={4}>
-                <Typography variant='body1' fontWeight='bold'>
-                  Lokasi Ruangan
-                </Typography>
-              </Grid>
-              <Grid item xs={8}>
-                <Typography variant='body1'>{data?.lokasi || '-'}</Typography>
+        {isLoadData ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={4}>
+            <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
+              <Grid container spacing={4}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' fontWeight='bold'>
+                    Nama Ruangan
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant='body1'>{data?.nama || '-'}</Typography>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
 
-          <Grid item xs={12}>
-            <DataGrid<THistoryLabs>
-              autoHeight
-              rows={data?.historyLabs ?? []}
-              columns={columns}
-              disableColumnFilter
-              disableColumnMenu
-              disableColumnSelector
-              hideFooter
-              loading={loading}
-              slots={{
-                loadingOverlay: CircularProgress
-              }}
-              sx={{
-                [`& .${gridClasses.cell}`]: {
-                  py: 1
-                }
-              }}
-            />
+            <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
+              <Grid container spacing={4}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' fontWeight='bold'>
+                    Lokasi Ruangan
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant='body1'>{data?.lokasi || '-'}</Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+
+            <Grid item xs={12}>
+              <DataGrid<THistoryLabs>
+                autoHeight
+                rows={data?.historyLabs ?? []}
+                columns={columns}
+                disableColumnFilter
+                disableColumnMenu
+                disableColumnSelector
+                hideFooter
+                loading={isLoadData}
+                slots={{
+                  loadingOverlay: CircularProgress
+                }}
+                sx={{
+                  [`& .${gridClasses.cell}`]: {
+                    py: 1
+                  }
+                }}
+              />
+            </Grid>
           </Grid>
-        </Grid>
+        )}
       </DialogContent>
     </Dialog>
   )

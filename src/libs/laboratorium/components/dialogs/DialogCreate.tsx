@@ -1,5 +1,8 @@
-import { Icon } from '@iconify/react'
-import { DialogTitle } from '@mui/material'
+// React Import
+import React, { ReactElement, Ref, forwardRef, useState } from 'react'
+
+// MUI Imports
+import { CircularProgress, DialogTitle } from '@mui/material'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -9,17 +12,24 @@ import Fade, { FadeProps } from '@mui/material/Fade'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import React, { ReactElement, Ref, forwardRef, useState } from 'react'
-import 'react-datepicker/dist/react-datepicker.css'
+import { LoadingButton } from '@mui/lab'
+
+// Third Party
+import { Icon } from '@iconify/react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import { useDispatch } from 'react-redux'
-import CustomButton from 'src/components/templates/custom/CustomButton'
+
+// Component Imports
 import { CustomTextField } from 'src/components/templates/custom/CustomTextField'
-import { AppDispatch } from 'src/stores'
-import { createRuanganLaboratorium } from 'src/stores/laboratorium/action'
-import { setIsRefresh } from 'src/stores/laboratorium/slice'
+
+// Services & Types
 import { TCreateRuanganLaboratorium } from 'src/stores/laboratorium/types'
+import { useAppDispatch } from 'src/utils/dispatch'
+import { IDialogProps } from 'src/utils/response.utils'
+
+// Redux Imports
+import { setIsRefresh } from 'src/stores/laboratorium/slice'
+import { useCreateRuangan } from 'src/stores/laboratorium/service'
 
 const Transition = forwardRef(function Transition(
   props: FadeProps & { children?: ReactElement<any, any> },
@@ -28,8 +38,8 @@ const Transition = forwardRef(function Transition(
   return <Fade ref={ref} {...props} />
 })
 
-const DialogCreateRuanganLaboratorium = ({ open, onClose }: any) => {
-  const dispatch: AppDispatch = useDispatch()
+const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
+  const dispatch = useAppDispatch()
 
   const { control, reset, handleSubmit } = useForm<TCreateRuanganLaboratorium>({
     defaultValues: {
@@ -38,33 +48,20 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: any) => {
     }
   })
 
-  const [isLoading, setIsLoading] = useState(false)
+  const { mutate, isCreating } = useCreateRuangan()
 
   const handleClose = () => {
-    setIsLoading(false)
     reset()
-    onClose(false)
+    onClose()
 
     dispatch(setIsRefresh())
   }
 
-  const handleCreate = async (value: TCreateRuanganLaboratorium) => {
-    setIsLoading(true)
+  const onSubmit = handleSubmit(async value => {
+    await mutate(value)
 
-    // @ts-ignore
-    await dispatch(createRuanganLaboratorium({ data: value })).then(res => {
-      if (res.meta.requestStatus !== 'fulfilled') {
-        setIsLoading(false)
-        toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
-
-        return
-      }
-
-      setIsLoading(true)
-      toast.success(res.payload.message)
-      handleClose()
-    })
-  }
+    handleClose()
+  })
 
   return (
     <Dialog
@@ -96,13 +93,7 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: any) => {
         </Box>
       </DialogTitle>
 
-      <form
-        onSubmit={e => {
-          e.preventDefault()
-
-          handleSubmit(handleCreate)()
-        }}
-      >
+      <form onSubmit={onSubmit}>
         <DialogContent
           sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
           style={{ paddingTop: '5px' }}
@@ -132,12 +123,18 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: any) => {
           </Grid>
         </DialogContent>
         <DialogActions sx={{ pb: { xs: 8, sm: 12.5 }, justifyContent: 'end', px: { xs: 8, sm: 15 } }}>
-          <Button variant='contained' color='secondary' disabled={isLoading} onClick={() => handleClose()}>
+          <Button variant='contained' color='secondary' disabled={isCreating} onClick={() => handleClose()}>
             Batal
           </Button>
-          <CustomButton type='submit' loading={isLoading} variant='contained' disabled={isLoading}>
+          <LoadingButton
+            loadingIndicator={<CircularProgress size={20} />}
+            type='submit'
+            loading={isCreating}
+            variant='contained'
+            disabled={isCreating}
+          >
             Simpan
-          </CustomButton>
+          </LoadingButton>
         </DialogActions>
       </form>
     </Dialog>
