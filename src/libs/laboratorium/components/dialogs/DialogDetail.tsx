@@ -1,16 +1,15 @@
 // React Imports
-import React, { ReactElement, Ref, forwardRef } from 'react'
+import React from 'react'
 
 // MUI Imports
 import { CircularProgress, DialogTitle } from '@mui/material'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
-import Fade, { FadeProps } from '@mui/material/Fade'
 import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
+import { DataGrid, gridClasses } from '@mui/x-data-grid'
 
 // Third Party Imports
 import { Icon } from '@iconify/react'
@@ -24,18 +23,18 @@ import { useAppDispatch } from 'src/utils/dispatch'
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { THistoryLabs } from 'src/stores/laboratorium/types'
 import { useGetRuangan } from 'src/stores/laboratorium/service'
+import { useHistoryLab } from '../../hook/useHistoryLab'
+import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
+import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 
-const Transition = forwardRef(function Transition(
-  props: FadeProps & { children?: ReactElement<any, any> },
-  ref: Ref<unknown>
-) {
-  return <Fade ref={ref} {...props} />
-})
+const Transition = TransitionDialog
 
 const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps) => {
   const dispatch = useAppDispatch()
 
   const { data, isLoadData } = useGetRuangan(values?.id)
+
+  const { columns } = useHistoryLab()
 
   const handleClose = () => {
     onClose()
@@ -43,49 +42,6 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
     // @ts-ignore
     dispatch(setIsRefresh())
   }
-
-  const columns: GridColDef<THistoryLabs>[] = [
-    {
-      flex: 0.25,
-      field: 'no',
-      headerName: 'No',
-      maxWidth: 80,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'nama',
-      headerName: 'Nama Kepala Lab',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params?.row?.nama}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'nip',
-      headerName: 'Nip Kepala Lab',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params?.row?.nip}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'jabatan',
-      headerName: 'Masa Jabatan',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <span>{'-'}</span>
-      }
-    }
-  ]
 
   return (
     <Dialog
@@ -100,21 +56,7 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
         }
       }}
     >
-      <DialogTitle sx={{ mb: 6, px: { xs: 8, sm: 15 }, position: 'relative', backgroundColor: 'primary.dark' }}>
-        <IconButton
-          onClick={() => {
-            handleClose()
-          }}
-          sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
-        >
-          <Icon icon='material-symbols:close' color='white' />
-        </IconButton>
-        <Box>
-          <Typography variant='h5' color={'white'}>
-            Detail Ruangan Laboratorium
-          </Typography>
-        </Box>
-      </DialogTitle>
+      <HeaderDialog title='Detail Ruangan Laboratorium' onClose={onClose} />
 
       <DialogContent
         sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}

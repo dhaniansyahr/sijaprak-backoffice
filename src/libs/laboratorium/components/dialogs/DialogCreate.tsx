@@ -1,26 +1,13 @@
 // React Import
-import React, { ReactElement, Ref, forwardRef, useState } from 'react'
+import React from 'react'
 
 // MUI Imports
-import { CircularProgress, DialogTitle } from '@mui/material'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
-import Fade, { FadeProps } from '@mui/material/Fade'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import { LoadingButton } from '@mui/lab'
 
 // Third Party
-import { Icon } from '@iconify/react'
 import { useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
-
-// Component Imports
-import { CustomTextField } from 'src/components/templates/custom/CustomTextField'
 
 // Services & Types
 import { TCreateRuanganLaboratorium } from 'src/stores/laboratorium/types'
@@ -30,13 +17,12 @@ import { IDialogProps } from 'src/utils/response.utils'
 // Redux Imports
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { useCreateRuangan } from 'src/stores/laboratorium/service'
+import HeaderDialog from 'src/components/shared/dialog/dialog-header'
+import { FormTextField } from 'src/components/shared/input/text-field'
+import ActionDialog from 'src/components/shared/dialog/dialog-action'
+import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 
-const Transition = forwardRef(function Transition(
-  props: FadeProps & { children?: ReactElement<any, any> },
-  ref: Ref<unknown>
-) {
-  return <Fade ref={ref} {...props} />
-})
+const Transition = TransitionDialog
 
 const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
   const dispatch = useAppDispatch()
@@ -76,22 +62,11 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
         }
       }}
     >
-      <DialogTitle sx={{ mb: 6, px: { xs: 8, sm: 15 }, position: 'relative', backgroundColor: 'primary.dark' }}>
-        <IconButton
-          onClick={() => {
-            handleClose()
-          }}
-          sx={{ position: 'absolute', right: '1rem', top: '1rem' }}
-        >
-          <Icon icon='material-symbols:close' color='white' />
-        </IconButton>
-        <Box>
-          <Typography variant='h5' color={'white'}>
-            Tambah Ruangan Laboratorium
-          </Typography>
-          <Typography color={'white'}>Isi formulir berikut untuk detail Ruangan Laboratorium baru</Typography>
-        </Box>
-      </DialogTitle>
+      <HeaderDialog
+        title='Tambah Ruangan Laboratorium'
+        onClose={onClose}
+        description='Isi formulir berikut untuk detail Ruangan Laboratorium baru'
+      />
 
       <form onSubmit={onSubmit}>
         <DialogContent
@@ -100,7 +75,7 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
         >
           <Grid container spacing={4}>
             <Grid item xs={12}>
-              <CustomTextField
+              <FormTextField
                 name='nama'
                 label='Nama Ruangan'
                 placeholder='Masukan Nama Ruangan Laboratorium'
@@ -111,7 +86,7 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
             </Grid>
 
             <Grid item xs={12}>
-              <CustomTextField
+              <FormTextField
                 name='lokasi'
                 label='Lokasi Ruangan'
                 placeholder='Masukan Lokasi Ruangan Laboratorium (Ex. Gedung A Lantai 3)'
@@ -122,20 +97,8 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ pb: { xs: 8, sm: 12.5 }, justifyContent: 'end', px: { xs: 8, sm: 15 } }}>
-          <Button variant='contained' color='secondary' disabled={isCreating} onClick={() => handleClose()}>
-            Batal
-          </Button>
-          <LoadingButton
-            loadingIndicator={<CircularProgress size={20} />}
-            type='submit'
-            loading={isCreating}
-            variant='contained'
-            disabled={isCreating}
-          >
-            Simpan
-          </LoadingButton>
-        </DialogActions>
+
+        <ActionDialog isLoading={isCreating} onClose={onClose} />
       </form>
     </Dialog>
   )

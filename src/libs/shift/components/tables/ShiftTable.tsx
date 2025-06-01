@@ -1,90 +1,29 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Switch,
-  TextField,
-  Typography
-} from '@mui/material'
-import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
-import { Fragment, useState } from 'react'
-import CreateShiftDialog from '../dialogs/CreateShiftDialog'
+import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/material'
+import { Fragment } from 'react'
+import CreateShiftDialog from '../dialogs/DialogAdd'
 import { Icon } from '@iconify/react'
 import { TShift } from 'src/stores/shift/types'
 import { useAppSelector } from 'src/utils/dispatch'
 import { useGetAllShifts } from 'src/stores/shift/service'
+import { useShiftTable } from '../../hooks/useShitTable'
+import DefaultTable from 'src/components/shared/table'
+import HeaderPage from 'src/components/shared/header-page'
 
 export default function ShiftTable() {
   const { isRefresh } = useAppSelector(state => state.shift)
 
+  // Fetch Data
   const { data, isLoadTable, page, setPage, pageSize, setPageSize, handleSearch } = useGetAllShifts(isRefresh)
 
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
+  // Hooks Table
+  const { columns, isAddDialogOpen, setIsAddDialogOpen, isLoading: isUpdating } = useShiftTable()
 
-  const columns: GridColDef<TShift>[] = [
-    {
-      flex: 0.25,
-      field: 'no',
-      headerName: 'No',
-      maxWidth: 80,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'startTime',
-      headerName: 'Start Time',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params?.row?.startTime}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'endTime',
-      headerName: 'End Time',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <span>{params?.row?.endTime}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'isActive',
-      headerName: 'Is Active',
-      minWidth: 160,
-      sortable: false,
-      renderCell: params => {
-        return <Switch checked={params.row.isActive} color='success' />
-      }
-    }
-  ]
+  const isLoading = isLoadTable || isUpdating
 
   return (
     <Fragment>
       <Card elevation={4}>
-        <CardHeader
-          title={
-            <Box>
-              <Typography variant='h4' fontWeight={500}>
-                Manajemen Shift
-              </Typography>
-            </Box>
-          }
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'start', md: 'center' },
-            borderBottom: '1px solid #f4f4f4'
-          }}
-        />
+        <HeaderPage title='Management Shift' />
 
         <CardHeader
           title={
@@ -103,7 +42,7 @@ export default function ShiftTable() {
               <Button
                 variant='contained'
                 color='primary'
-                onClick={() => setIsCreateDialogOpen(true)}
+                onClick={() => setIsAddDialogOpen(true)}
                 startIcon={<Icon icon='ic:baseline-add' />}
               >
                 Tambah Shift
@@ -118,37 +57,20 @@ export default function ShiftTable() {
           }}
         />
         <CardContent style={{ paddingInline: '10px' }}>
-          <DataGrid<TShift>
-            autoHeight
-            rows={data?.entries ?? []}
+          <DefaultTable<TShift>
+            entries={data?.entries || []}
             columns={columns}
-            pagination
-            disableColumnFilter
-            disableColumnMenu
-            disableColumnSelector
-            rowCount={data?.totalData ?? 0}
-            paginationModel={{
-              page: page - 1,
-              pageSize: pageSize
-            }}
-            onPaginationModelChange={(newModel: any) => {
-              setPage(newModel.page + 1)
-              setPageSize(newModel.pageSize)
-            }}
-            loading={isLoadTable}
-            slots={{
-              loadingOverlay: CircularProgress
-            }}
-            sx={{
-              [`& .${gridClasses.cell}`]: {
-                py: 1
-              }
-            }}
+            totalData={data?.totalData || 0}
+            page={page}
+            pageSize={pageSize}
+            setPage={setPage}
+            setPageSize={setPageSize}
+            isLoading={isLoading}
           />
         </CardContent>
       </Card>
 
-      <CreateShiftDialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} />
+      <CreateShiftDialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
     </Fragment>
   )
 }
