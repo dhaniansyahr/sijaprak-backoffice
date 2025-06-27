@@ -1,18 +1,14 @@
 // React Imports
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 // MUI Imports
-import { CircularProgress, DialogTitle } from '@mui/material'
+import { CircularProgress } from '@mui/material'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid'
-import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
-
-// Third Party Imports
-import { Icon } from '@iconify/react'
+import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
 
 // Utils
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
@@ -20,28 +16,74 @@ import { IDialogProps } from 'src/utils/response.utils'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
-import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { THistoryLabs } from 'src/stores/laboratorium/types'
-import { useGetRuangan } from 'src/stores/laboratorium/service'
-import { useHistoryLab } from '../../hook/useHistoryLab'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
+import { getRuanganLaboratorium } from 'src/stores/laboratorium/action'
+import toast from 'react-hot-toast'
 
 const Transition = TransitionDialog
+
+const columns: GridColDef[] = [
+  {
+    flex: 0.25,
+    field: 'no',
+    headerName: 'No',
+    maxWidth: 80,
+    sortable: false,
+    renderCell: params => {
+      return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
+    }
+  },
+  {
+    flex: 0.25,
+    field: 'nama',
+    headerName: 'Nama Kepala Lab',
+    sortable: false
+  },
+  {
+    flex: 0.25,
+    field: 'nip',
+    headerName: 'Nip Kepala Lab',
+    sortable: false
+  }
+
+  // {
+  //   flex: 0.25,
+  //   field: 'jabatan',
+  //   headerName: 'Masa Jabatan',
+  //   sortable: false
+  // }
+]
 
 const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps) => {
   const dispatch = useAppDispatch()
 
-  const { data, isLoadData } = useGetRuangan(values?.id)
+  const [isLoading, setIsLoading] = useState(false)
+  const [data, setData] = useState<any>(null)
 
-  const { columns } = useHistoryLab()
-
-  const handleClose = () => {
-    onClose()
+  const handleGetData = async () => {
+    setIsLoading(true)
 
     // @ts-ignore
-    dispatch(setIsRefresh())
+    await dispatch(getRuanganLaboratorium({ id: values?.id })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
+        toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
+
+        return
+      }
+
+      setIsLoading(false)
+      setData(res.payload.content)
+    })
   }
+
+  useEffect(() => {
+    if (open) {
+      handleGetData()
+    }
+  }, [values?.id, open])
 
   return (
     <Dialog
@@ -62,7 +104,7 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
         sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
         style={{ paddingTop: '5px' }}
       >
-        {isLoadData ? (
+        {isLoading ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
             <CircularProgress />
           </Box>
@@ -103,7 +145,7 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
                 disableColumnMenu
                 disableColumnSelector
                 hideFooter
-                loading={isLoadData}
+                loading={isLoading}
                 slots={{
                   loadingOverlay: CircularProgress
                 }}

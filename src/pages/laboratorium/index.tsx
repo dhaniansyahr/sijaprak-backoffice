@@ -1,5 +1,3 @@
-import MainLaboratoriumContainer from 'src/libs/laboratorium/containers/MainLaboratoriumContainer'
+import RuanganContainer from 'src/libs/laboratorium/containers'
 
-export default function index() {
-  return <MainLaboratoriumContainer />
-}
+export default RuanganContainer

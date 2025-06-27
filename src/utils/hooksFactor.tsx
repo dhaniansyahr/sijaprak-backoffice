@@ -39,8 +39,8 @@ export const createCrudHooks = <T, TCreate>(config: HookFactoryConfig<T, TCreate
   const { actions, searchFields = [], defaultPageSize = 10, messages = {} } = config
 
   return {
-    useGetAll: (refresh: boolean) =>
-      useGetAll<T>({ getAll: actions.getAll }, refresh, { searchFields, defaultPageSize }),
+    useGetAll: (refresh: boolean, params?: Record<string, any>) =>
+      useGetAll<T>({ getAll: actions.getAll }, refresh, { searchFields, defaultPageSize, additionalParams: params }),
 
     useGetById: (id: string) => useGetById<T>({ getById: actions.getById }, id),
 

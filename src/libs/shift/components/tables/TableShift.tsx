@@ -1,5 +1,5 @@
 import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/material'
-import { Fragment } from 'react'
+import { Fragment, useCallback, useMemo, memo } from 'react'
 import CreateShiftDialog from '../dialogs/DialogAdd'
 import { Icon } from '@iconify/react'
 import { TShift } from 'src/stores/shift/types'
@@ -9,16 +9,32 @@ import { useShiftTable } from '../../hooks/useShitTable'
 import DefaultTable from 'src/components/shared/table'
 import HeaderPage from 'src/components/shared/header-page'
 
-export default function ShiftTable() {
+const TableShift = () => {
   const { isRefresh } = useAppSelector(state => state.shift)
 
   // Fetch Data
   const { data, isLoadTable, page, setPage, pageSize, setPageSize, handleSearch } = useGetAllShifts(isRefresh)
 
   // Hooks Table
-  const { columns, isAddDialogOpen, setIsAddDialogOpen, isLoading: isUpdating } = useShiftTable()
+  const {
+    columns,
+    isAddDialogOpen,
+    handleOpenDialog,
+    handleCloseDialog,
+    debouncedSearch,
+    isLoading: isUpdating
+  } = useShiftTable(handleSearch)
 
-  const isLoading = isLoadTable || isUpdating
+  const isLoading = useMemo(() => isLoadTable || isUpdating, [isLoadTable, isUpdating])
+
+  // Memoize table data to prevent unnecessary re-renders
+  const tableData = useMemo(
+    () => ({
+      entries: data?.entries || [],
+      totalData: data?.totalData || 0
+    }),
+    [data?.entries, data?.totalData]
+  )
 
   return (
     <Fragment>
@@ -32,7 +48,7 @@ export default function ShiftTable() {
                 fullWidth
                 size='small'
                 placeholder='Cari waktu mulai dan waktu berakhir'
-                onChange={(e: any) => handleSearch(e.target.value)}
+                onChange={e => debouncedSearch(e.target.value)}
                 sx={{ minWidth: 200, pr: 2 }}
               />
             </Box>
@@ -42,7 +58,7 @@ export default function ShiftTable() {
               <Button
                 variant='contained'
                 color='primary'
-                onClick={() => setIsAddDialogOpen(true)}
+                onClick={handleOpenDialog}
                 startIcon={<Icon icon='ic:baseline-add' />}
               >
                 Tambah Shift
@@ -58,9 +74,9 @@ export default function ShiftTable() {
         />
         <CardContent style={{ paddingInline: '10px' }}>
           <DefaultTable<TShift>
-            entries={data?.entries || []}
+            entries={tableData.entries}
             columns={columns}
-            totalData={data?.totalData || 0}
+            totalData={tableData.totalData}
             page={page}
             pageSize={pageSize}
             setPage={setPage}
@@ -70,7 +86,9 @@ export default function ShiftTable() {
         </CardContent>
       </Card>
 
-      <CreateShiftDialog open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
+      <CreateShiftDialog open={isAddDialogOpen} onClose={handleCloseDialog} />
     </Fragment>
   )
 }
+
+export default memo(TableShift)

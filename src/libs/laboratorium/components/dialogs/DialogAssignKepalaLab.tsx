@@ -4,13 +4,10 @@ import React, { useState } from 'react'
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
-import Grid from '@mui/material/Grid'
 
 // Third Party Imports
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-
-import { CustomTextField } from 'src/components/templates/custom/CustomTextField'
 
 // Redux & Types
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
@@ -19,6 +16,8 @@ import { useAppDispatch } from 'src/utils/dispatch'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import ActionDialog from 'src/components/shared/dialog/dialog-action'
+import FormSection from '../form'
+import { assignKepalaLab } from 'src/stores/laboratorium/action'
 
 const Transition = TransitionDialog
 
@@ -31,14 +30,15 @@ interface IDialogAssignKepalaLab {
 const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab) => {
   const dispatch = useAppDispatch()
 
+  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<any>([])
+
   const { control, reset, handleSubmit } = useForm<TAssignKepalaLab>({
     values: {
       nama: values?.namaKepalaLab || '',
       nip: values?.nipKepalaLab || ''
     }
   })
-
-  const [isLoading, setIsLoading] = useState(false)
 
   const handleClose = () => {
     setIsLoading(false)
@@ -56,6 +56,7 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
     await dispatch(assignKepalaLab({ data: value, id: values?.id })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
         setIsLoading(false)
+        setErrors(res.payload.response.data?.errors)
         toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
 
         return
@@ -87,29 +88,7 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
           sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
           style={{ paddingTop: '5px' }}
         >
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <CustomTextField
-                name='nama'
-                label='Nama Kepala Lab'
-                placeholder='Masukan Nama Kepala Ruangan Laboratorium'
-                control={control}
-                rules={{ required: 'Nama Kepala Lab is Required!' }}
-                fullWidth
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <CustomTextField
-                name='nip'
-                label='NIP Kepala'
-                placeholder='Masukan NIP Kepala Ruangan Laboratorium (Ex. Gedung A Lantai 3)'
-                control={control}
-                fullWidth
-                rules={{ required: 'NIP Kepala Ruangan is Required!' }}
-              />
-            </Grid>
-          </Grid>
+          <FormSection control={control} errors={errors} isAssignKepalaLab={true} />
         </DialogContent>
 
         <ActionDialog isLoading={isLoading} onClose={onClose} />

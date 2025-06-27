@@ -2,37 +2,36 @@ import { Icon } from '@iconify/react'
 import { Grid, useTheme } from '@mui/material'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import InputLabel from '@mui/material/InputLabel'
-import OutlinedInput from '@mui/material/OutlinedInput'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { useAuth } from 'src/hooks/useAuth'
 import DialogForgotPassword from '../dialog/DialogForgotPassword'
+import { handleMapErrors, IError } from 'src/utils/response.utils'
 
 export default function LoginForm() {
   const auth = useAuth()
-  const theme = useTheme()
 
-  const { watch, setValue, handleSubmit } = useForm()
+  const { control, handleSubmit } = useForm()
 
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isDialogForgotPasswordOpen, setIsDialogForgotPasswordOpen] = useState<boolean>(false)
+  const [errors, setErrors] = useState<IError[]>([])
 
-  const handleLogin = async (value: any, isSSO: boolean) => {
+  const handleLogin = async (value: any) => {
     setIsLoading(true)
 
     const body = Object.assign({}, value)
 
     auth.login(body, (err: any) => {
       toast.dismiss()
-      toast.error(err.response?.data?.message)
+      toast.error(err.response?.data?.errors?.[0]?.message || err.response?.data?.message)
+      setErrors(err.response?.data?.errors)
       setIsLoading(false)
 
       return
@@ -64,94 +63,103 @@ export default function LoginForm() {
           noValidate
           autoComplete='off'
           onSubmit={handleSubmit((value: any) => {
-            handleLogin(value, false)
+            handleLogin(value)
           })}
         >
-          <TextField
-            autoFocus
-            fullWidth
-            id='identity'
-            label='NIP/NPM/Email'
-            sx={{
-              mb: 4,
-              borderRadius: '16px',
+          <Controller
+            control={control}
+            name='identity'
+            render={({ field }) => (
+              <TextField
+                autoFocus
+                fullWidth
+                id='identity'
+                label='NIP/NPM/Email'
+                sx={{
+                  mb: 4,
+                  borderRadius: '16px',
 
-              //change the color of the textfield to black
-              '& .MuiInputBase-input': {
-                color: 'black'
-              },
+                  //change the color of the textfield to black
+                  '& .MuiInputBase-input': {
+                    color: 'black'
+                  },
 
-              //change color of the label when not focused
-              '& .MuiInputLabel-root': {
-                color: 'grey'
-              },
+                  //change color of the label when not focused
+                  '& .MuiInputLabel-root': {
+                    color: 'grey'
+                  },
 
-              //change border color
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'white !important',
-                '& fieldset': {
-                  borderColor: '#4C4E6438'
-                },
-                '&:hover ': {
-                  borderColor: '#4C4E6438'
-                }
-              }
-            }}
-            value={watch('identity')}
-            onChange={e => {
-              setValue('identity', e.target.value)
-            }}
+                  //change border color
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white !important',
+                    '& fieldset': {
+                      borderColor: '#4C4E6438'
+                    },
+                    '&:hover ': {
+                      borderColor: '#4C4E6438'
+                    }
+                  }
+                }}
+                {...field}
+                error={!!handleMapErrors(errors, 'identity')}
+                helperText={handleMapErrors(errors, 'identity')}
+              />
+            )}
           />
-          <FormControl
-            fullWidth
-            sx={{
-              '& .MuiInputBase-input': {
-                color: 'black'
-              },
 
-              //change color of the label when not focused
-              '& .MuiInputLabel-root': {
-                color: 'grey'
-              },
+          <Controller
+            control={control}
+            name='password'
+            render={({ field }) => (
+              <TextField
+                label='Password'
+                id='password'
+                fullWidth
+                type={isShowPassword ? 'text' : 'password'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        edge='end'
+                        onClick={() => setIsShowPassword(!isShowPassword)}
+                        aria-label='toggle password visibility'
+                      >
+                        {isShowPassword ? <Icon icon='mdi:eye-outline' /> : <Icon icon='mdi:eye-off-outline' />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  borderRadius: '16px',
 
-              //change border color
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: '#4C4E6438'
-                },
-                '&:hover ': {
-                  borderColor: '#4C4E6438'
-                }
-              }
-            }}
-          >
-            <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
-            <OutlinedInput
-              label='Password'
-              id='auth-login-password'
-              type={isShowPassword ? 'text' : 'password'}
-              endAdornment={
-                <InputAdornment position='end'>
-                  <IconButton
-                    edge='end'
-                    onClick={() => setIsShowPassword(!isShowPassword)}
-                    aria-label='toggle password visibility'
-                  >
-                    {isShowPassword ? <Icon icon='mdi:eye-outline' /> : <Icon icon='mdi:eye-off-outline' />}
-                  </IconButton>
-                </InputAdornment>
-              }
-              sx={{
-                background: theme.palette.common.white
+                  //change the color of the textfield to black
+                  '& .MuiInputBase-input': {
+                    color: 'black'
+                  },
 
-                //change the color of the textfield to black
-              }}
-              value={watch('password')}
-              onChange={e => {
-                setValue('password', e.target.value)
-              }}
-            />
-          </FormControl>
+                  //change color of the label when not focused
+                  '& .MuiInputLabel-root': {
+                    color: 'grey'
+                  },
+
+                  //change border color
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: 'white !important',
+                    '& fieldset': {
+                      borderColor: '#4C4E6438'
+                    },
+                    '&:hover ': {
+                      borderColor: '#4C4E6438'
+                    }
+                  }
+                }}
+                {...field}
+                error={!!handleMapErrors(errors, 'password')}
+                helperText={handleMapErrors(errors, 'password')}
+              />
+            )}
+          />
+
           <Box sx={{ mb: 4 }} />
           <Button
             fullWidth

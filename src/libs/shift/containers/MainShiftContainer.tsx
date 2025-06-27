@@ -1,5 +1,8 @@
-import ShiftTable from '../components/tables/ShiftTable'
+import { memo } from 'react'
+import TableShift from '../components/tables/TableShift'
 
-export default function MainShiftContainer() {
-  return <ShiftTable />
+const MainShiftContainer = () => {
+  return <TableShift />
 }
+
+export default memo(MainShiftContainer)

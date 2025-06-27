@@ -1,10 +1,9 @@
 // React Import
-import React from 'react'
+import React, { useState } from 'react'
 
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
-import Grid from '@mui/material/Grid'
 
 // Third Party
 import { useForm } from 'react-hook-form'
@@ -18,14 +17,19 @@ import { IDialogProps } from 'src/utils/response.utils'
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { useCreateRuangan } from 'src/stores/laboratorium/service'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
-import { FormTextField } from 'src/components/shared/input/text-field'
 import ActionDialog from 'src/components/shared/dialog/dialog-action'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
+import FormSection from '../form'
+import { createRuanganLaboratorium } from 'src/stores/laboratorium/action'
+import toast from 'react-hot-toast'
 
 const Transition = TransitionDialog
 
 const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
   const dispatch = useAppDispatch()
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [errors, setErrors] = useState<any>([])
 
   const { control, reset, handleSubmit } = useForm<TCreateRuanganLaboratorium>({
     defaultValues: {
@@ -33,8 +37,6 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
       lokasi: ''
     }
   })
-
-  const { mutate, isCreating } = useCreateRuangan()
 
   const handleClose = () => {
     reset()
@@ -44,9 +46,22 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
   }
 
   const onSubmit = handleSubmit(async value => {
-    await mutate(value)
+    setIsLoading(true)
 
-    handleClose()
+    // @ts-ignore
+    await dispatch(createRuanganLaboratorium({ data: value })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
+        setErrors(res.payload.response.data?.errors)
+        toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
+
+        return
+      }
+
+      setIsLoading(false)
+      toast.success(res.payload.message)
+      handleClose()
+    })
   })
 
   return (
@@ -73,32 +88,10 @@ const DialogCreateRuanganLaboratorium = ({ open, onClose }: IDialogProps) => {
           sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
           style={{ paddingTop: '5px' }}
         >
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <FormTextField
-                name='nama'
-                label='Nama Ruangan'
-                placeholder='Masukan Nama Ruangan Laboratorium'
-                control={control}
-                rules={{ required: 'Nama Ruangan is Required!' }}
-                fullWidth
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormTextField
-                name='lokasi'
-                label='Lokasi Ruangan'
-                placeholder='Masukan Lokasi Ruangan Laboratorium (Ex. Gedung A Lantai 3)'
-                control={control}
-                fullWidth
-                rules={{ required: 'Lokasi Ruangan is Required!' }}
-              />
-            </Grid>
-          </Grid>
+          <FormSection control={control} errors={errors} />
         </DialogContent>
 
-        <ActionDialog isLoading={isCreating} onClose={onClose} />
+        <ActionDialog isLoading={isLoading} onClose={onClose} />
       </form>
     </Dialog>
   )

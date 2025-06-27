@@ -3,36 +3,20 @@ import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/mate
 
 // Hooks & types
 import { TRuanganLaboratorium } from 'src/stores/laboratorium/types'
-import { useAppSelector } from 'src/utils/dispatch'
 
 // Dialogs
 import DialogCreateRuanganLaboratorium from '../dialogs/DialogCreate'
 import DialogDetailRuanganLaboratorium from '../dialogs/DialogDetail'
 import DialogEditRuanganLaboratorium from '../dialogs/DialogEdit'
 import DialogAssignKepalaLab from '../dialogs/DialogAssignKepalaLab'
-import { useGetAllRuangan } from 'src/stores/laboratorium/service'
 import HeaderPage from 'src/components/shared/header-page'
 import { useRuanganTable } from '../../hook/useRuanganTable'
 import DefaultTable from 'src/components/shared/table'
+import { Icon } from '@iconify/react'
 
-export default function LaboratoriumTable() {
-  const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
-
-  const { data, isLoadTable, page, pageSize, setPage, setPageSize, handleSearch } = useGetAllRuangan(isRefresh)
-
+export default function TableRuangan() {
   // Hooks
-  const {
-    isDialogAddOpen,
-    setIsDialogAddOpen,
-    isDialogEditOpen,
-    setIsDialogEditOpen,
-    isDialogDetailOpen,
-    setIsDialogDetailOpen,
-    isDialogChangeOpen,
-    setIsDialogChangeOpen,
-    columns,
-    rowSelected
-  } = useRuanganTable()
+  const { columns, state, setState, tableState, setTableState, handleSearch } = useRuanganTable()
 
   return (
     <>
@@ -45,7 +29,7 @@ export default function LaboratoriumTable() {
               <TextField
                 fullWidth
                 size='small'
-                placeholder='Cari Nama'
+                placeholder='Cari Nama Ruangan'
                 onChange={(e: any) => handleSearch(e.target.value)}
                 sx={{ minWidth: 200, pr: 2 }}
               />
@@ -53,7 +37,13 @@ export default function LaboratoriumTable() {
           }
           action={
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <Button variant='contained' color='primary' sx={{ mb: 2 }} onClick={() => setIsDialogAddOpen(true)}>
+              <Button
+                variant='contained'
+                color='primary'
+                sx={{ mb: 2 }}
+                onClick={() => setState({ ...state, isAdd: true })}
+                startIcon={<Icon icon='ic:baseline-add' />}
+              >
                 Tambah Laboratorium
               </Button>
             </Box>
@@ -65,38 +55,38 @@ export default function LaboratoriumTable() {
             borderBottom: '1px solid #f4f4f4'
           }}
         />
-        <CardContent style={{ paddingInline: '10px' }}>
+        <CardContent>
           <DefaultTable<TRuanganLaboratorium>
-            entries={data?.entries || []}
+            entries={tableState.data?.entries || []}
             columns={columns}
-            totalData={data?.totalData || 0}
-            page={page}
-            pageSize={pageSize}
-            setPage={setPage}
-            setPageSize={setPageSize}
-            isLoading={isLoadTable}
+            totalData={tableState.data?.totalData || 0}
+            page={tableState.page}
+            pageSize={tableState.pageSize}
+            setPage={page => setTableState(prev => ({ ...prev, page }))}
+            setPageSize={pageSize => setTableState(prev => ({ ...prev, pageSize }))}
+            isLoading={tableState.isLoading}
           />
         </CardContent>
       </Card>
 
-      <DialogCreateRuanganLaboratorium open={isDialogAddOpen} onClose={() => setIsDialogAddOpen(false)} />
+      <DialogCreateRuanganLaboratorium open={state.isAdd} onClose={() => setState({ ...state, isAdd: false })} />
 
       <DialogEditRuanganLaboratorium
-        open={isDialogEditOpen}
-        onClose={() => setIsDialogEditOpen(false)}
-        values={rowSelected}
+        open={state.isEdit}
+        onClose={() => setState({ ...state, isEdit: false })}
+        values={state.rowSelected}
       />
 
       <DialogDetailRuanganLaboratorium
-        open={isDialogDetailOpen}
-        onClose={() => setIsDialogDetailOpen(false)}
-        values={rowSelected}
+        open={state.isDetail}
+        onClose={() => setState({ ...state, isDetail: false })}
+        values={state.rowSelected}
       />
 
       <DialogAssignKepalaLab
-        open={isDialogChangeOpen}
-        onClose={() => setIsDialogChangeOpen(false)}
-        values={rowSelected as TRuanganLaboratorium}
+        open={state.isChange}
+        onClose={() => setState({ ...state, isChange: false })}
+        values={state.rowSelected as TRuanganLaboratorium}
       />
     </>
   )

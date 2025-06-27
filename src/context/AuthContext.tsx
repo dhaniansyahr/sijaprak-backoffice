@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode, createContext, useEffect, useState } from 'react'
+import { ReactNode, createContext, useEffect, useState, useCallback, useMemo, useRef } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -37,95 +37,175 @@ const AuthProvider = ({ children }: Props) => {
   // ** Hooks
   const router = useRouter()
 
+  // ** Refs for cleanup
+  const initAuthRef = useRef<boolean>(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // ** Memoized helper functions
+  const setApiDefaults = useCallback((token: string) => {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    api.defaults.headers.common['Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
+  }, [])
+
+  const clearAuthData = useCallback(() => {
+    localStorage.removeItem('userData')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('accessToken')
+    setUser(null)
+    setLoading(false)
+  }, [])
+
+  const getUserDataFromStorage = useCallback((): UserDataType | null => {
+    try {
+      const userData = localStorage.getItem('userData')
+
+      return userData ? JSON.parse(userData) : null
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error)
+
+      return null
+    }
+  }, [])
+
+  const setUserDataToStorage = useCallback((userData: UserDataType) => {
+    try {
+      localStorage.setItem('userData', JSON.stringify(userData))
+    } catch (error) {
+      console.error('Error saving user data to localStorage:', error)
+    }
+  }, [])
+
   useEffect(() => {
+    // Prevent multiple initialization calls
+    if (initAuthRef.current) return
+
     const initAuth = async (): Promise<void> => {
-      const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)!
-      if (storedToken) {
+      initAuthRef.current = true
+
+      try {
+        const storedToken = localStorage.getItem(authConfig.storageTokenKeyName)
+
+        if (!storedToken) {
+          setLoading(false)
+
+          return
+        }
+
         setLoading(true)
-        await api
-          .post(authConfig.meEndpoint, {
-            token: `${storedToken}`
-          })
-          .then(async res => {
-            console.log('Response Verify Token : ', res)
-            api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`
-            api.defaults.headers.common['Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-            setLoading(false)
-            setUser(JSON.parse(localStorage.getItem('userData')!))
+        // Create abort controller for cleanup
+        abortControllerRef.current = new AbortController()
 
-            // setUser({ ...response.data.content?.payload })
-            // localStorage.setItem('userData', JSON.stringify(response.data.content?.payload))
-          })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUser(null)
-            setLoading(false)
-          })
-      } else {
+        const response = await api.post(
+          authConfig.meEndpoint,
+          { token: storedToken },
+          { signal: abortControllerRef.current.signal }
+        )
+
+        console.log('Response Verify Token:', response)
+
+        setApiDefaults(storedToken)
+
+        const userData = getUserDataFromStorage()
+        if (userData) {
+          setUser(userData)
+        }
+
         setLoading(false)
+      } catch (error: any) {
+        // Don't handle aborted requests
+        if (error.name === 'AbortError') return
+
+        console.error('Auth initialization error:', error)
+        clearAuthData()
       }
     }
 
     initAuth()
-  }, [router])
 
-  const handleLogin = (params: LoginParams, errorCallback?: ErrCallbackType) => {
-    api
-      .post(authConfig.loginEndpoint, params)
-      .then(async response => {
-        console.log('Response : ', response)
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
+      }
+    }
+  }, []) // Remove router dependency to prevent unnecessary re-runs
 
-        window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.content?.token)
+  const handleLogin = useCallback(
+    async (params: LoginParams, errorCallback?: ErrCallbackType) => {
+      try {
+        // First API call - login
+        const loginResponse = await api.post(authConfig.loginEndpoint, params)
 
-        setUser({ ...response.data.content?.user, role: 'ADMIN' })
-        await window.localStorage.setItem('userData', JSON.stringify({ ...response.data.content?.user, role: 'ADMIN' }))
-      })
-      .then(() => {
-        api
-          .post(authConfig.meEndpoint, {
-            token: `${window.localStorage.getItem(authConfig.storageTokenKeyName)}`!
-          })
-          .then(async () => {
-            const returnUrl = router.query.returnUrl
+        const token = loginResponse.data.content?.token
+        const userData = { ...loginResponse.data.content?.user, role: 'ADMIN' }
 
-            api.defaults.headers.common['Authorization'] = `Bearer ${window.localStorage.getItem(
-              authConfig.storageTokenKeyName
-            )}`
-            api.defaults.headers.common['Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
+        if (!token) {
+          throw new Error('No token received from login')
+        }
 
-            // setUser({ ...response.data.content?.payload })
-            // localStorage.setItem('userData', JSON.stringify(response.data.content?.payload))
+        // Store token
+        localStorage.setItem(authConfig.storageTokenKeyName, token)
 
-            const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+        // Set user data
+        setUser(userData)
+        setUserDataToStorage(userData)
 
-            window.location.href = redirectURL as string
-          })
-      })
-      .catch(err => {
-        if (errorCallback) errorCallback(err)
-      })
-  }
+        // Second API call - verify token
+        await api.post(authConfig.meEndpoint, { token })
 
-  const handleLogout = () => {
-    setUser(null)
-    window.localStorage.removeItem('userData')
-    window.localStorage.removeItem(authConfig.storageTokenKeyName)
-    router.push('/login')
-  }
+        // Set API defaults
+        setApiDefaults(token)
 
-  const values = {
-    user,
-    loading,
-    setUser,
-    setLoading,
-    login: handleLogin,
-    logout: handleLogout
-  }
+        // Handle redirect
+        const returnUrl = router.query.returnUrl
+        const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/dashboard'
 
-  return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>
+        // Use router for navigation instead of window.location
+        await router.push(redirectURL as string)
+      } catch (error: any) {
+        clearAuthData()
+
+        if (errorCallback) {
+          errorCallback(error)
+        }
+      }
+    },
+    [router, setApiDefaults, setUserDataToStorage, clearAuthData]
+  )
+
+  const handleLogout = useCallback(async () => {
+    try {
+      setLoading(true)
+      clearAuthData()
+
+      // Clear API defaults
+      delete api.defaults.headers.common['Authorization']
+      delete api.defaults.headers.common['Timezone']
+
+      await router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [router, clearAuthData])
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      user,
+      loading,
+      setUser,
+      setLoading,
+      login: handleLogin,
+      logout: handleLogout
+    }),
+    [user, loading, handleLogin, handleLogout]
+  )
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export { AuthContext, AuthProvider }

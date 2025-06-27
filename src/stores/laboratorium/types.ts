@@ -10,6 +10,7 @@ export type TRuanganLaboratorium = {
   updatedAt: string | null
   deletedAt: string | null
   histroyKepalaLabId: string
+  isActive: boolean
 }
 
 export type TDetailRuanganLaboratorium = {

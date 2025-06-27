@@ -22,6 +22,7 @@ interface SearchFilters {
 interface UseGetAllOptions {
   searchFields?: string[]
   defaultPageSize?: number
+  additionalParams?: Record<string, any>
 }
 
 // Generic useGetAll hook
@@ -31,7 +32,7 @@ export const useGetAll = <T,>(
   options: UseGetAllOptions = {}
 ) => {
   const dispatch = useAppDispatch()
-  const { searchFields = [], defaultPageSize = 10 } = options
+  const { searchFields = [], defaultPageSize = 10, additionalParams } = options
 
   const [data, setData] = useState<TPagedList<T> | null>(null)
   const [isLoadTable, setIsLoadTable] = useState<boolean>(false)
@@ -46,6 +47,7 @@ export const useGetAll = <T,>(
       params: {
         page: isPagination ? page : 1,
         rows: pageSize,
+        ...additionalParams,
         ...(search &&
           searchFields.length > 0 && {
             searchFilters: searchFields.reduce((acc, field) => {

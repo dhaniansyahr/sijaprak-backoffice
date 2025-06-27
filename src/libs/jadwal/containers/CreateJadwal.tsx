@@ -1,4 +1,3 @@
-import { Icon } from '@iconify/react'
 import {
   Autocomplete,
   Box,
@@ -6,156 +5,68 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardHeader,
   CircularProgress,
   Divider,
   Grid,
-  IconButton,
-  TextField,
-  Typography
+  TextField
 } from '@mui/material'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import { Fragment, useState } from 'react'
-import ReactDatePicker from 'react-datepicker'
 import { useForm } from 'react-hook-form'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import DialogConfirmation from '../components/dialogs/DialogConfirmation'
-import { NextRouter, useRouter } from 'next/router'
-import { DatePickerInputs } from 'src/components/templates/custom/DatePickerInput'
+import HeaderPage from 'src/components/shared/header-page'
+import FormAutocomplete from 'src/components/shared/input/autocomplete'
+import { useGetAllShifts } from 'src/stores/shift/service'
+import { useGetFreeJadwal } from '../hooks/useGetFreeJadwal'
+import { LoadingButton } from '@mui/lab'
+
+const hariOptions = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU']
 
 export default function CreateJadwal() {
-  const router: NextRouter = useRouter()
+  const { watch, setValue, control } = useForm()
 
-  const { watch, setValue } = useForm()
+  const { data: shifts, isLoadTable: isLoadShifts } = useGetAllShifts(true, { page: 1, rows: 1000000 })
 
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [data, setData] = useState<any>(null)
+  const { data: freeJadwal, isLoading: isLoadFreeJadwal, columns, handleGetFreeJadwal } = useGetFreeJadwal()
 
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState<boolean>(false)
-
-  const columns = [
-    {
-      flex: 0.25,
-      field: 'no',
-      headerName: 'No',
-      maxWidth: 80,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'shift',
-      headerName: 'Shift',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.shift ?? '-'}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'startTime',
-      headerName: 'Start Time',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.startTime ?? '-'}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'endTime',
-      headerName: 'End Time',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.endTime ?? '-'}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'ruangan',
-      headerName: 'Ruangan',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.ruangan ?? '-'}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'action',
-      headerName: 'Aksi',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return (
-          <Box>
-            <Button variant='contained' size='small'>
-              Pilih
-            </Button>
-          </Box>
-        )
-      }
-    }
-  ]
 
   return (
     <Fragment>
       <Card sx={{ mb: 4 }}>
-        <CardHeader
-          title={
-            <Box display='flex' alignItems='center' gap={2}>
-              <IconButton
-                sx={{
-                  transform: 'translateX(-5px)',
-                  transition: 'transform 0.3s'
-                }}
-                onClick={() => router.back()}
-              >
-                <Icon icon='meteor-icons:arrow-left' />
-              </IconButton>
-              <Typography variant='h6' fontWeight={500}>
-                Buat Jadwal Praktikum Baru
-              </Typography>
-            </Box>
-          }
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'start', md: 'center' },
-            borderBottom: '1px solid #f4f4f4'
-          }}
-        />
+        <HeaderPage icon='meteor-icons:arrow-left' title='Tambah Jadwal Praktikum Baru' />
       </Card>
 
       <Card sx={{ padding: '16px' }}>
         <CardContent sx={{ padding: '24px' }}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <DatePickerWrapper>
-                <ReactDatePicker
-                  isClearable
-                  selected={watch('tanggal') ?? null}
-                  dateFormat='yyyy-MM-dd'
-                  customInput={<DatePickerInputs label='Tanggal' placeholder='YYYY-MM-DD' />}
-                  onChange={(date: any) => setValue('tanggal', date)}
-                />
-              </DatePickerWrapper>
+              <FormAutocomplete
+                name='hari'
+                options={hariOptions}
+                getOptionLabel={option => option}
+                control={control}
+                placeholder='Pilih Hari'
+                label='Hari'
+                fullWidth
+                rules={{
+                  require: 'Hari is Required!'
+                }}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Autocomplete
-                options={[]}
-                getOptionLabel={(option: any) => option.name}
-                filterSelectedOptions
-                renderInput={params => (
-                  <TextField {...params} required variant='outlined' label='Shift' placeholder='Pilih Shift' />
-                )}
-                value={watch('shift') ?? null}
-                onChange={(e, v) => setValue('shift', v)}
+              <FormAutocomplete
+                loading={isLoadShifts}
+                options={shifts?.entries || []}
+                getOptionLabel={option => `${option.startTime} - ${option.endTime}`}
+                name='shiftId'
+                label='Shift'
+                placeholder='Pilih Shift'
+                control={control}
+                rules={{
+                  require: 'Shift is Required!'
+                }}
               />
             </Grid>
 
@@ -215,9 +126,15 @@ export default function CreateJadwal() {
         <Divider />
 
         <CardContent sx={{ padding: '24px' }}>
-          <Button variant='outlined' color='success'>
-            Check Jadwal Kosong
-          </Button>
+          <LoadingButton
+            variant='outlined'
+            color='success'
+            onClick={handleGetFreeJadwal}
+            loading={isLoadFreeJadwal}
+            loadingIndicator={<CircularProgress size={20} />}
+          >
+            Daftar Jadwal Kosong
+          </LoadingButton>
         </CardContent>
 
         <Divider />
@@ -225,14 +142,14 @@ export default function CreateJadwal() {
         <CardContent sx={{ padding: '24px' }}>
           <DataGrid
             autoHeight
-            rows={[]}
+            rows={freeJadwal?.freeScheduleSlots || []}
             columns={columns}
             pagination
             disableColumnFilter
             disableColumnMenu
             disableColumnSelector
             hideFooter
-            loading={isLoading}
+            loading={isLoadFreeJadwal}
             slots={{
               loadingOverlay: CircularProgress
             }}

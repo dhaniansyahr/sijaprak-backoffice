@@ -6,6 +6,7 @@ interface FormAutocompleteProps<T extends FieldValues>
   name: FieldPath<T>
   control: Control<T>
   rules?: any
+  label: string
   textFieldProps?: Omit<TextFieldProps, 'name'>
 }
 
@@ -14,10 +15,11 @@ const FormAutocomplete = <T extends FieldValues>({
   control,
   rules,
   textFieldProps,
+  label,
   ...props
 }: FormAutocompleteProps<T>) => {
   const {
-    field: { onChange, value, ref },
+    field: { onChange, value },
     fieldState: { error }
   } = useController({
     name,
@@ -29,11 +31,16 @@ const FormAutocomplete = <T extends FieldValues>({
     <Autocomplete
       {...props}
       renderInput={params => (
-        <TextField {...params} {...textFieldProps} error={!!error} helperText={error ? error.message : ''} />
+        <TextField
+          {...params}
+          {...textFieldProps}
+          label={label}
+          error={!!error}
+          helperText={error ? error.message : ''}
+        />
       )}
       value={value}
       onChange={onChange}
-      getOptionLabel={option => option.label}
     />
   )
 }

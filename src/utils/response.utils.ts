@@ -15,6 +15,11 @@ export type TResponse<T> = {
   errors: []
 }
 
+export interface IError {
+  field: string
+  message: string
+}
+
 export type TPagedListResponse<T> = TResponse<{
   entries: T[]
   totalData: number
@@ -31,4 +36,8 @@ export interface IDialogProps {
   open: boolean
   onClose: () => void
   values?: any
+}
+
+export function handleMapErrors(errors: IError[], fieldName: string): string {
+  return errors.find(error => error.field === fieldName)?.message || ''
 }

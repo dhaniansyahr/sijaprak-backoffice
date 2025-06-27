@@ -51,8 +51,8 @@ const DefaultTable = <T extends Record<string, any>>(props: IDefaultTableProps<T
             py: 1
           },
           '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: 'grey.50',
-            color: 'text.primary',
+            backgroundColor: 'primary.main',
+            color: 'white',
             fontWeight: 600
           },
           '& .MuiDataGrid-row:hover': {
