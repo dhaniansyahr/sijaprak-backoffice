@@ -1,43 +1,31 @@
-import { Switch } from '@mui/material'
+import { debounce, Switch } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { updateShift } from 'src/stores/shift/action'
+import { getAllShift, updateShift } from 'src/stores/shift/action'
 import { setIsRefresh } from 'src/stores/shift/slice'
 import { TShift } from 'src/stores/shift/types'
-import { useAppDispatch } from 'src/utils/dispatch'
+import { ITableState } from 'src/types'
+import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 
-// Custom debounce hook for search optimization
-const useDebounce = (callback: (value: string) => void, delay: number) => {
-  const timeoutRef = useRef<NodeJS.Timeout>()
-
-  return useCallback(
-    (value: string) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
-
-      timeoutRef.current = setTimeout(() => {
-        callback(value)
-      }, delay)
-    },
-    [callback, delay]
-  )
-}
-
-export const useShiftTable = (searchHandler?: (value: string) => void) => {
+export const useShiftTable = () => {
   const dispatch = useAppDispatch()
+  const { isRefresh } = useAppSelector(state => state.shift)
+
+  const [tableState, setTableState] = useState<ITableState>({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    isLoading: false,
+    data: null
+  })
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  // Debounced search with 300ms delay
-  const debouncedSearch = useDebounce(searchHandler || (() => {}), 300)
+  const debouncedSearchRef = useRef<any>(null)
 
   const handleToggle = useCallback(
     async (isActive: boolean, row: TShift) => {
-      setIsLoading(true)
-
       const body = {
         startTime: row.startTime,
         endTime: row.endTime,
@@ -58,8 +46,6 @@ export const useShiftTable = (searchHandler?: (value: string) => void) => {
         dispatch(setIsRefresh())
       } catch (error) {
         toast.error('Failed to update shift status')
-      } finally {
-        setIsLoading(false)
       }
     },
     [dispatch]
@@ -81,21 +67,13 @@ export const useShiftTable = (searchHandler?: (value: string) => void) => {
         flex: 0.25,
         field: 'startTime',
         headerName: 'Start Time',
-        minWidth: 160,
-        sortable: false,
-        renderCell: params => {
-          return <span>{params?.row?.startTime}</span>
-        }
+        sortable: false
       },
       {
         flex: 0.25,
         field: 'endTime',
         headerName: 'End Time',
-        minWidth: 160,
-        sortable: false,
-        renderCell: params => {
-          return <span>{params?.row?.endTime}</span>
-        }
+        sortable: false
       },
       {
         flex: 0.25,
@@ -109,30 +87,91 @@ export const useShiftTable = (searchHandler?: (value: string) => void) => {
               checked={params.row.isActive}
               color='success'
               onChange={e => handleToggle(e.target.checked, params?.row)}
-              disabled={isLoading}
+              disabled={tableState.isLoading}
             />
           )
         }
       }
     ],
-    [handleToggle, isLoading]
+    [handleToggle, tableState.isLoading]
   )
 
-  const handleOpenDialog = useCallback(() => {
-    setIsAddDialogOpen(true)
+  const handleGetData = async (isPagination = false) => {
+    setTableState(prev => ({ ...prev, isLoading: true }))
+
+    const body = {
+      params: {
+        page: isPagination ? tableState.page : 1,
+        rows: tableState.pageSize,
+        searchFilters: {
+          nama: tableState.search
+        }
+      }
+    } as any
+
+    if (!tableState.search || tableState.search === '') delete body.params.searchFilters
+
+    body.params.searchFilters = JSON.stringify(body.params.searchFilters)
+
+    try {
+      const response = await dispatch(getAllShift({ data: body }))
+      const newData = response.payload.content
+
+      if (
+        isPagination &&
+        !(newData?.entries ?? []).some((obj: any) =>
+          (tableState.data?.entries ?? []).some((existingObj: any) => obj.id === existingObj.id)
+        )
+      ) {
+        // Append new entries to existing data
+        const combinedEntries = [...(tableState.data?.entries ?? []), ...(newData?.entries ?? [])]
+        setTableState(prev => ({
+          ...prev,
+          data: { ...newData, entries: combinedEntries }
+        }))
+      } else {
+        // Replace data entirely
+        if (!newData?.entries?.length && newData?.totalPage === 1) {
+          setTableState(prev => ({ ...prev, data: null }))
+        } else if (!isPagination) {
+          setTableState(prev => ({ ...prev, data: newData }))
+        }
+      }
+    } catch (error) {
+      toast.error('Gagal mengambil data')
+    }
+
+    setTableState(prev => ({ ...prev, isLoading: false }))
+  }
+
+  const handleSearch = useMemo(() => {
+    const debouncedSearch = debounce((query: string) => {
+      setTableState(prev => ({ ...prev, search: query }))
+    }, 100)
+
+    debouncedSearchRef.current = debouncedSearch
+
+    return (query: any) => debouncedSearch(query)
   }, [])
 
-  const handleCloseDialog = useCallback(() => {
-    setIsAddDialogOpen(false)
-  }, [])
+  useEffect(() => {
+    setTableState(prev => ({ ...prev, page: 1 }))
+
+    handleGetData(false)
+  }, [isRefresh, tableState.search])
+
+  useEffect(() => {
+    if (tableState.page !== 1) {
+      handleGetData(true)
+    }
+  }, [tableState.page, tableState.pageSize])
 
   return {
     isAddDialogOpen,
     setIsAddDialogOpen,
-    handleOpenDialog,
-    handleCloseDialog,
-    debouncedSearch,
     columns,
-    isLoading
+    tableState,
+    setTableState,
+    handleSearch
   }
 }

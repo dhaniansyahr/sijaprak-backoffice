@@ -1,5 +1,3 @@
-import MainShiftContainer from 'src/libs/shift/containers/MainShiftContainer'
+import ShiftContainer from 'src/libs/shift/containers'
 
-export default function index() {
-  return <MainShiftContainer />
-}
+export default ShiftContainer

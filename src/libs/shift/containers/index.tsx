@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import TableShift from '../components/tables/TableShift'
 
-const MainShiftContainer = () => {
+const ShiftContainer = () => {
   return <TableShift />
 }
 
-export default memo(MainShiftContainer)
+export default memo(ShiftContainer)
