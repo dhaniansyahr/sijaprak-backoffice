@@ -1,32 +1,88 @@
-import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Divider,
-  Grid,
-  IconButton,
-  Typography
-} from '@mui/material'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
-import { Fragment, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import DialogConfirmation from '../components/dialogs/DialogConfirmation'
+import { Card, CardContent, Divider, Grid, Typography } from '@mui/material'
+import { Fragment, memo, useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
+import { useAppDispatch } from 'src/utils/dispatch'
+import HeaderPage from 'src/components/shared/header-page'
+import DefaultTable from 'src/components/shared/table'
+import { getJadwal } from 'src/stores/jadwal/action'
+import DataTable from 'src/components/shared/table'
+
+const DetailValue = memo(({ data }: { data: any }) => {
+  return (
+    <Fragment>
+      <Grid item xs={12}>
+        <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+          <Grid item xs={4}>
+            <Typography variant='body1' sx={{ fontWeight: 600 }}>
+              Mata Kuliah
+            </Typography>
+          </Grid>
+          <Grid item xs={8}>
+            <Typography variant='body1'>{data?.matakuliah?.nama ?? '-'}</Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <Grid item xs={12}>
+        <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+          <Grid item xs={4}>
+            <Typography variant='body1' sx={{ fontWeight: 600 }}>
+              Waktu Praktikum
+            </Typography>
+          </Grid>
+          <Grid item xs={8}>
+            <Typography variant='body1'>
+              {data?.shift?.startTime ?? '-'} - {data?.shift?.endTime ?? '-'}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <Grid item xs={12} marginBottom={'16px'}>
+        <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+          <Grid item xs={4}>
+            <Typography variant='body1' sx={{ fontWeight: 600 }}>
+              Ruangan Praktikum
+            </Typography>
+          </Grid>
+          <Grid item xs={8}>
+            <Typography variant='body1'>{data?.ruangan?.nama ?? '-'}</Typography>
+          </Grid>
+        </Grid>
+      </Grid>
+
+      {data?.dosen?.map((item: any, index: number) => (
+        <Grid item xs={12} marginBottom={'16px'} key={index}>
+          <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+            <Grid item xs={4}>
+              <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                Dosen Pengampu {index + 1}
+              </Typography>
+            </Grid>
+            <Grid item xs={8}>
+              <Typography variant='body1'>
+                {item?.nama ?? '-'} ({item?.nip ?? '-'})
+              </Typography>
+            </Grid>
+          </Grid>
+        </Grid>
+      ))}
+    </Fragment>
+  )
+})
 
 export default function DetailJadwal() {
   const router: NextRouter = useRouter()
+  const dispatch = useAppDispatch()
 
-  const { watch, setValue } = useForm()
-
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [data, setData] = useState<any>(null)
-
-  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState<boolean>(false)
+  const { id } = router.query as { id: string }
+  const [state, setState] = useState<{
+    isLoading: boolean
+    data: any
+  }>({
+    isLoading: false,
+    data: null
+  })
 
   const columns = [
     {
@@ -61,174 +117,54 @@ export default function DetailJadwal() {
     }
   ]
 
+  const handleGetDetail = async () => {
+    setState(prev => ({ ...prev, isLoading: true }))
+
+    // @ts-ignore
+    await dispatch(getJadwal({ id })).then((res: any) => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setState(prev => ({ ...prev, isLoading: false }))
+
+        return
+      }
+
+      setState(prev => ({ ...prev, isLoading: false, data: res.payload.content }))
+    })
+  }
+
+  useEffect(() => {
+    handleGetDetail()
+  }, [id])
+
   return (
-    <Fragment>
-      <Card sx={{ mb: 4 }}>
-        <CardHeader
-          title={
-            <Box display='flex' alignItems='center' gap={2}>
-              <IconButton
-                sx={{
-                  transform: 'translateX(-5px)',
-                  transition: 'transform 0.3s'
-                }}
-                onClick={() => router.back()}
-              >
-                <Icon icon='meteor-icons:arrow-left' />
-              </IconButton>
-              <Typography variant='h6' fontWeight={500}>
-                Detail Jadwal Praktikum
-              </Typography>
-            </Box>
-          }
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'start', md: 'center' },
-            borderBottom: '1px solid #f4f4f4'
-          }}
-        />
-      </Card>
+    <Card sx={{ padding: '16px' }}>
+      <HeaderPage title='Detail Jadwal Praktikum' icon='meteor-icons:arrow-left' />
 
-      <Card sx={{ padding: '16px' }}>
-        <CardContent sx={{ padding: '24px' }}>
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                    Mata Kuliah
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>Rekayasa Perangakat Lunak</Typography>
-                </Grid>
-              </Grid>
-            </Grid>
+      <CardContent sx={{ padding: '24px !important' }}>
+        <Grid container spacing={4}>
+          <DetailValue data={state?.data} />
 
-            <Grid item xs={12}>
-              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                    Waktu Praktikum
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>Rekayasa Perangakat Lunak</Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-
-            <Grid item xs={12} marginBottom={'16px'}>
-              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                    Ruangan Praktikum
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>Rekayasa Perangakat Lunak</Typography>
-                </Grid>
-              </Grid>
-            </Grid>
-
-            {[
-              {
-                label: 'Dosen Pengajar 1',
-                field: 'dosenPengajar1'
-              },
-              {
-                label: 'Dosen Pengajar 2',
-                field: 'dosenPengajar2'
-              },
-              {
-                label: 'Asisten Lab 1',
-                field: 'asistenLab1'
-              },
-              {
-                label: 'Asisten Lab 2',
-                field: 'asistenLab2'
-              },
-              {
-                label: 'Asisten Lab 3',
-                field: 'asistenLab3'
-              },
-              {
-                label: 'Asisten Lab 4',
-                field: 'asistenLab4'
-              }
-            ].map((item: any, index: number) => (
-              <Grid item xs={12} md={6} key={index}>
-                <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
-                  <Grid item xs={8}>
-                    <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                      {item?.label}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Typography variant='body1'>{item?.field}</Typography>
-                  </Grid>
-                </Grid>
-              </Grid>
-            ))}
+          <Grid item xs={12}>
+            <Divider />
           </Grid>
-        </CardContent>
 
-        <Divider />
+          <Grid item xs={12}>
+            <Typography variant='h5' sx={{ fontWeight: 600 }}>
+              List Mahasiswa Praktikum
+            </Typography>
+          </Grid>
 
-        <CardContent sx={{ padding: '24px' }}>
-          <Typography variant='h5' sx={{ fontWeight: 600 }}>
-            List Mahasiswa Praktikum
-          </Typography>
-        </CardContent>
-
-        <Divider />
-
-        <CardContent sx={{ padding: '24px' }}>
-          <DataGrid
-            autoHeight
-            rows={[]}
-            columns={columns}
-            pagination
-            disableColumnFilter
-            disableColumnMenu
-            disableColumnSelector
-            hideFooter
-            loading={isLoading}
-            slots={{
-              loadingOverlay: CircularProgress
-            }}
-            sx={{
-              [`& .${gridClasses.cell}`]: {
-                py: 1
-              }
-            }}
-          />
-        </CardContent>
-
-        <Divider />
-
-        <CardActions
-          sx={{
-            display: 'flex',
-            justifyContent: 'end'
-          }}
-        >
-          <Button variant='contained' color='secondary'>
-            Batal
-          </Button>
-          <Button variant='contained' color='success' onClick={() => setIsConfirmationDialogOpen(true)}>
-            assign
-          </Button>
-        </CardActions>
-      </Card>
-
-      <DialogConfirmation
-        open={isConfirmationDialogOpen}
-        onClose={() => setIsConfirmationDialogOpen(false)}
-        values={null}
-        type='CREATE'
-      />
-    </Fragment>
+          <Grid item xs={12}>
+            <DataTable
+              data={state?.data?.mahasiswa ?? []}
+              columns={columns}
+              page={1}
+              pageSize={10}
+              isLoading={state?.isLoading}
+            />
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
   )
 }

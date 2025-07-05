@@ -2,7 +2,7 @@ import { debounce, Switch } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { getAllShift, updateShift } from 'src/stores/shift/action'
+import { deleteShift, getAllShift, updateShift } from 'src/stores/shift/action'
 import { setIsRefresh } from 'src/stores/shift/slice'
 import { TShift } from 'src/stores/shift/types'
 import { ITableState } from 'src/types'
@@ -23,33 +23,6 @@ export const useShiftTable = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false)
 
   const debouncedSearchRef = useRef<any>(null)
-
-  const handleToggle = useCallback(
-    async (isActive: boolean, row: TShift) => {
-      const body = {
-        startTime: row.startTime,
-        endTime: row.endTime,
-        isActive
-      }
-
-      try {
-        // @ts-ignore
-        const res = await dispatch(updateShift({ data: body, id: row.id }))
-
-        if (res?.meta.requestStatus !== 'fulfilled') {
-          toast.error(res.payload.response?.data?.errors?.[0]?.message || res.payload?.response?.data?.message)
-
-          return
-        }
-
-        toast.success(res.payload.message)
-        dispatch(setIsRefresh())
-      } catch (error) {
-        toast.error('Failed to update shift status')
-      }
-    },
-    [dispatch]
-  )
 
   const columns: GridColDef<TShift>[] = useMemo(
     () => [
@@ -86,14 +59,14 @@ export const useShiftTable = () => {
             <Switch
               checked={params.row.isActive}
               color='success'
-              onChange={e => handleToggle(e.target.checked, params?.row)}
+              onChange={e => handleActive(params?.row?.id)}
               disabled={tableState.isLoading}
             />
           )
         }
       }
     ],
-    [handleToggle, tableState.isLoading]
+    [tableState.isLoading, isRefresh]
   )
 
   const handleGetData = async (isPagination = false) => {
@@ -153,6 +126,30 @@ export const useShiftTable = () => {
 
     return (query: any) => debouncedSearch(query)
   }, [])
+
+  const handleActive = async (id: string) => {
+    toast.loading('Loading...')
+
+    const body: any = {
+      params: {
+        ids: JSON.stringify([id])
+      }
+    }
+
+    // @ts-ignore
+    await dispatch(deleteShift({ data: body })).then(res => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        toast.dismiss()
+        toast.error(res?.payload?.response?.data?.message)
+
+        return
+      }
+
+      toast.dismiss()
+      toast.success(res?.payload?.message)
+      dispatch(setIsRefresh())
+    })
+  }
 
   useEffect(() => {
     setTableState(prev => ({ ...prev, page: 1 }))

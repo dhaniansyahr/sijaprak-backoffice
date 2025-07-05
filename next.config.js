@@ -1,44 +1,26 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const path = require('path')
-
-// Configuring PWA
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true
-})
+// const path = require('path')
 
 /** @type {import('next').NextConfig} */
 
 // Remove this if you're not using Fullcalendar features
 
-const nextConfig = withPWA({
+module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
-  webpack: config => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      apexcharts: path.resolve(__dirname, './node_modules/apexcharts-clevision')
-    }
-
-    return config
+  eslint: {
+    ignoreDuringBuilds: true
   },
-  experimental: {
-    newNextLinkBehavior: true
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**'
+      },
+      {
+        protocol: 'http',
+        hostname: '**'
+      }
+    ]
   }
-})
-
-module.exports = nextConfig
-
-// module.exports = {
-//   trailingSlash: true,
-//   reactStrictMode: false,
-//   webpack: config => {
-//     config.resolve.alias = {
-//       ...config.resolve.alias,
-//       apexcharts: path.resolve(__dirname, './node_modules/apexcharts-clevision')
-//     }
-
-//     return config
-//   }
-// }
+}

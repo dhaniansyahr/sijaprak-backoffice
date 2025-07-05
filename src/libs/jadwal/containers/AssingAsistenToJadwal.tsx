@@ -233,12 +233,7 @@ export default function AssignAsistenToJadwal() {
         </CardActions>
       </Card>
 
-      <DialogConfirmation
-        open={isConfirmationDialogOpen}
-        onClose={() => setIsConfirmationDialogOpen(false)}
-        values={null}
-        type='CREATE'
-      />
+      <DialogConfirmation open={isConfirmationDialogOpen} onClose={() => setIsConfirmationDialogOpen(false)} />
     </Fragment>
   )
 }

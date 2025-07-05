@@ -39,8 +39,18 @@ const FormAutocomplete = <T extends FieldValues>({
           helperText={error ? error.message : ''}
         />
       )}
-      value={value}
-      onChange={onChange}
+      value={value ?? (props.multiple ? [] : null)}
+      onChange={(event, newValue) => onChange(newValue)}
+      isOptionEqualToValue={(option, value) => {
+        if (!option || !value) return option === value
+        if (typeof option === 'string') return option === value
+
+        if (props.multiple) {
+          return value.some((v: any) => v.id === option.id)
+        }
+
+        return option.id === value.id || option === value
+      }}
     />
   )
 }

@@ -1,5 +1,3 @@
-import MainJadwalContainer from 'src/libs/jadwal/containers/MainJadwalContainer'
+import JadwalContainer from 'src/libs/jadwal/containers'
 
-export default function index() {
-  return <MainJadwalContainer />
-}
+export default JadwalContainer

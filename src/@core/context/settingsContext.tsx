@@ -83,15 +83,22 @@ const restoreSettings = (): Settings | null => {
   let settings = null
 
   try {
-    const storedData: string | null = window.localStorage.getItem('settings')
+    // ✅ Check if we're on client side
+    if (typeof window !== 'undefined') {
+      const storedData: string | null = window.localStorage.getItem('settings')
 
-    if (storedData) {
-      settings = { ...JSON.parse(storedData), ...staticSettings }
+      if (storedData) {
+        settings = { ...JSON.parse(storedData), ...staticSettings }
+      } else {
+        settings = initialSettings
+      }
     } else {
+      // On server, return initial settings
       settings = initialSettings
     }
   } catch (err) {
     console.error(err)
+    settings = initialSettings
   }
 
   return settings
@@ -99,15 +106,22 @@ const restoreSettings = (): Settings | null => {
 
 // set settings in localStorage
 const storeSettings = (settings: Settings) => {
-  const initSettings = Object.assign({}, settings)
+  // ✅ Check if we're on client side
+  if (typeof window === 'undefined') return
 
-  delete initSettings.appBar
-  delete initSettings.footer
-  delete initSettings.layout
-  delete initSettings.navHidden
-  delete initSettings.lastLayout
-  delete initSettings.toastPosition
-  window.localStorage.setItem('settings', JSON.stringify(initSettings))
+  try {
+    const initSettings = Object.assign({}, settings)
+
+    delete initSettings.appBar
+    delete initSettings.footer
+    delete initSettings.layout
+    delete initSettings.navHidden
+    delete initSettings.lastLayout
+    delete initSettings.toastPosition
+    window.localStorage.setItem('settings', JSON.stringify(initSettings))
+  } catch (error) {
+    console.error('Error storing settings:', error)
+  }
 }
 
 // ** Create Context
@@ -119,19 +133,30 @@ export const SettingsContext = createContext<SettingsContextValue>({
 export const SettingsProvider = ({ children, pageSettings }: SettingsProviderProps) => {
   // ** State
   const [settings, setSettings] = useState<Settings>({ ...initialSettings })
+  const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
+    // ✅ Mark as hydrated only on client side
+    if (typeof window !== 'undefined') {
+      setIsHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    // ✅ Only restore settings after hydration
+    if (!isHydrated) return
+
     const restoredSettings = restoreSettings()
 
     if (restoredSettings) {
       setSettings({ ...restoredSettings })
     }
     if (pageSettings) {
-      setSettings({ ...settings, ...pageSettings })
+      setSettings(prevSettings => ({ ...prevSettings, ...pageSettings }))
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSettings])
+  }, [pageSettings, isHydrated])
 
   useEffect(() => {
     if (settings.layout === 'horizontal' && settings.mode === 'semi-dark') {

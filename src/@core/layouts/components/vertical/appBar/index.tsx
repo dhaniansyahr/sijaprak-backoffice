@@ -54,15 +54,16 @@ const LayoutAppBar = (props: Props) => {
   const scrollTrigger = useScrollTrigger({ threshold: 0, disableHysteresis: true })
 
   // ** Vars
-  const { skin, appBar, appBarBlur, contentWidth } = settings
+  const { skin, appBar, appBarBlur } = settings
 
   const appBarFixedStyles = () => {
     return {
       px: `${theme.spacing(6)} !important`,
       boxShadow: skin === 'bordered' ? 0 : 3,
-      ...(appBarBlur && { backdropFilter: 'blur(8px)' }),
-      backgroundColor: hexToRGBA(theme.palette.background.paper, appBarBlur ? 0.9 : 1),
-      ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}`, borderTopWidth: 0 })
+      backgroundColor: hexToRGBA(theme.palette.primary.main, appBarBlur ? 0.9 : 1)
+
+      // ...(skin === 'bordered' && { border: `1px solid ${theme.palette.divider}`, borderTopWidth: 0 })
+      // ...(appBarBlur && { backdropFilter: 'blur(8px)' }),
     }
   }
 

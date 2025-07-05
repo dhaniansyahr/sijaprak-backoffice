@@ -1,5 +1,5 @@
 import { Grid } from '@mui/material'
-import React from 'react'
+import { memo } from 'react'
 import { Control } from 'react-hook-form'
 import { FormTextField } from 'src/components/shared/input/text-field'
 import { handleMapErrors } from 'src/utils/response.utils'
@@ -10,38 +10,51 @@ interface IFormSectionProps {
   isAssignKepalaLab?: boolean
 }
 
-const FormSection = ({ control, errors, isAssignKepalaLab = false }: IFormSectionProps) => {
+const FormSection = memo(({ control, errors, isAssignKepalaLab = false }: IFormSectionProps) => {
+  const nameField = isAssignKepalaLab ? 'nama' : 'nama'
+  const secondField = isAssignKepalaLab ? 'nip' : 'lokasi'
+
+  const nameLabel = isAssignKepalaLab ? 'Nama Kepala Lab' : 'Nama Ruangan'
+  const namePlaceholder = isAssignKepalaLab ? 'Masukan Nama Kepala Lab' : 'Masukan Nama Ruangan Laboratorium'
+  const nameRequired = isAssignKepalaLab ? 'Nama Kepala Lab is Required!' : 'Nama Ruangan is Required!'
+
+  const secondLabel = isAssignKepalaLab ? 'NIP Kepala Lab' : 'Lokasi Ruangan'
+  const secondPlaceholder = isAssignKepalaLab
+    ? 'Masukan NIP Kepala Lab'
+    : 'Masukan Lokasi Ruangan Laboratorium (Ex. Gedung A Lantai 3)'
+  const secondRequired = isAssignKepalaLab ? 'NIP Kepala Lab is Required!' : 'Lokasi Ruangan is Required!'
+
   return (
     <Grid container spacing={4}>
       <Grid item xs={12}>
         <FormTextField
-          name='nama'
-          label={isAssignKepalaLab ? 'Nama Kepala Lab' : 'Nama Ruangan'}
-          placeholder={isAssignKepalaLab ? 'Masukan Nama Kepala Lab' : 'Masukan Nama Ruangan Laboratorium'}
+          name={nameField}
+          label={nameLabel}
+          placeholder={namePlaceholder}
           control={control}
-          error={!!handleMapErrors(errors, 'nama')}
-          helperText={handleMapErrors(errors, 'nama')}
-          rules={{ required: isAssignKepalaLab ? 'Nama Kepala Lab is Required!' : 'Nama Ruangan is Required!' }}
+          error={!!handleMapErrors(errors, nameField)}
+          helperText={handleMapErrors(errors, nameField)}
+          rules={{ required: nameRequired }}
           fullWidth
         />
       </Grid>
 
       <Grid item xs={12}>
         <FormTextField
-          name={isAssignKepalaLab ? 'nip' : 'lokasi'}
-          label={isAssignKepalaLab ? 'NIP Kepala Lab' : 'Lokasi Ruangan'}
-          placeholder={
-            isAssignKepalaLab ? 'Masukan NIP Kepala Lab' : 'Masukan Lokasi Ruangan Laboratorium (Ex. Gedung A Lantai 3)'
-          }
+          name={secondField}
+          label={secondLabel}
+          placeholder={secondPlaceholder}
           control={control}
-          error={!!handleMapErrors(errors, isAssignKepalaLab ? 'nip' : 'lokasi')}
-          helperText={handleMapErrors(errors, isAssignKepalaLab ? 'nip' : 'lokasi')}
+          error={!!handleMapErrors(errors, secondField)}
+          helperText={handleMapErrors(errors, secondField)}
           fullWidth
-          rules={{ required: isAssignKepalaLab ? 'NIP Kepala Lab is Required!' : 'Lokasi Ruangan is Required!' }}
+          rules={{ required: secondRequired }}
         />
       </Grid>
     </Grid>
   )
-}
+})
+
+FormSection.displayName = 'FormSection'
 
 export default FormSection

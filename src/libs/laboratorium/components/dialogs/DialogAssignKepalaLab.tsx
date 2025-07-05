@@ -1,23 +1,25 @@
 // React Imports
-import React, { useState } from 'react'
+import { useState, memo, useCallback } from 'react'
 
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 
 // Third Party Imports
-import { useForm } from 'react-hook-form'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
 // Redux & Types
 import { setIsRefresh } from 'src/stores/laboratorium/slice'
 import { TAssignKepalaLab, TRuanganLaboratorium } from 'src/stores/laboratorium/types'
 import { useAppDispatch } from 'src/utils/dispatch'
+import { assignKepalaLab } from 'src/stores/laboratorium/action'
+
+// Components
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import ActionDialog from 'src/components/shared/dialog/dialog-action'
 import FormSection from '../form'
-import { assignKepalaLab } from 'src/stores/laboratorium/action'
 
 const Transition = TransitionDialog
 
@@ -27,7 +29,7 @@ interface IDialogAssignKepalaLab {
   values: TRuanganLaboratorium
 }
 
-const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab) => {
+const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepalaLab) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -40,33 +42,39 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
     }
   })
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsLoading(false)
     reset()
     onClose()
-
-    // @ts-ignore
     dispatch(setIsRefresh())
-  }
+  }, [reset, onClose, dispatch])
 
-  const onSubmit = handleSubmit(async value => {
-    setIsLoading(true)
-
-    // @ts-ignore
-    await dispatch(assignKepalaLab({ data: value, id: values?.id })).then(res => {
-      if (res.meta.requestStatus !== 'fulfilled') {
-        setIsLoading(false)
-        setErrors(res.payload.response.data?.errors)
-        toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
-
-        return
-      }
-
+  const onSubmit: SubmitHandler<TAssignKepalaLab> = useCallback(
+    async value => {
       setIsLoading(true)
-      toast.success(res.payload.message)
-      handleClose()
-    })
-  })
+      setErrors([])
+
+      try {
+        // @ts-ignore
+        const res = await dispatch(assignKepalaLab({ data: value, id: values?.id }))
+
+        if (res.meta.requestStatus !== 'fulfilled') {
+          setErrors(res.payload.response.data?.errors || [])
+          toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
+
+          return
+        }
+
+        toast.success(res.payload.message)
+        handleClose()
+      } catch (error) {
+        toast.error('Terjadi kesalahan saat menyimpan data')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [dispatch, handleClose, values?.id]
+  )
 
   return (
     <Dialog
@@ -77,16 +85,16 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
       TransitionComponent={Transition}
       PaperProps={{
         sx: {
-          borderRadius: '0px'
+          borderRadius: 0
         }
       }}
     >
       <HeaderDialog title='Pergantian Kepala Laboratorium' onClose={onClose} />
 
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent
           sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-          style={{ paddingTop: '5px' }}
+          style={{ paddingTop: 5 }}
         >
           <FormSection control={control} errors={errors} isAssignKepalaLab={true} />
         </DialogContent>
@@ -95,6 +103,8 @@ const DialogAssignKepalaLab = ({ open, onClose, values }: IDialogAssignKepalaLab
       </form>
     </Dialog>
   )
-}
+})
+
+DialogAssignKepalaLab.displayName = 'DialogAssignKepalaLab'
 
 export default DialogAssignKepalaLab

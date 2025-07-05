@@ -2,23 +2,26 @@ import { Icon } from '@iconify/react'
 import Box from '@mui/material/Box'
 import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import { LoadingButton } from '@mui/lab'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-import ActionDialog from 'src/components/shared/dialog/dialog-action'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 
 const Transition = TransitionDialog
 
-interface DialogConfirmationProps {
+interface DialogConflictProps {
   open: boolean
   onClose: () => void
-  onSubmit?: () => void
-  isLoading?: boolean
+  onSubmit: () => Promise<void>
+  isLoading: boolean
 }
 
-const DialogConfirmation = ({ open, onClose, onSubmit, isLoading }: DialogConfirmationProps) => {
+const DialogConflict = ({ open, onClose, onSubmit, isLoading }: DialogConflictProps) => {
   return (
     <Dialog
       fullWidth
@@ -30,9 +33,16 @@ const DialogConfirmation = ({ open, onClose, onSubmit, isLoading }: DialogConfir
         '& .MuiDialog-paper': { border: 'none', borderRadius: '0px' }
       }}
     >
-      <HeaderDialog onClose={onClose} title='Konfirmasi' />
+      <HeaderDialog onClose={onClose} title='Konflik Jadwal Terdeteksi' />
 
-      <form action='submit' onSubmit={onSubmit}>
+      <form
+        action='submit'
+        onSubmit={e => {
+          e.preventDefault()
+
+          onSubmit()
+        }}
+      >
         <DialogContent
           sx={{ pb: 6, px: { xs: 8, sm: 10 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
           style={{ paddingTop: '5px' }}
@@ -51,31 +61,48 @@ const DialogConfirmation = ({ open, onClose, onSubmit, isLoading }: DialogConfir
                     display: 'flex',
                     width: '72px',
                     height: '72px',
-                    backgroundColor: theme => hexToRGBA(theme.palette.warning.main, 0.12),
+                    backgroundColor: theme => hexToRGBA(theme.palette.error.main, 0.12),
                     borderRadius: '100%',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
                 >
-                  <Icon icon='solar:danger-triangle-bold' width={48} color='#FCCF14' />
+                  <Icon icon='solar:danger-triangle-bold' width={48} color='#FF4842' />
                 </Box>
               </Box>
             </Grid>
             <Grid item xs={12}>
               <Typography variant='h5' align='center'>
-                Apakah semua data terisi dengan benar?
+                Jadwal Bentrok Terdeteksi!
               </Typography>
               <Typography variant='body2' align='center' sx={{ color: '#4C4E6499' }}>
-                Pastikan dan konfirmasikan keakuratan data perubahan yang Anda buat
+                Jadwal yang akan dibuat bentrok dengan jadwal yang sudah ada. Apakah Anda ingin melakukan override untuk
+                menimpa jadwal yang sudah ada?
               </Typography>
             </Grid>
           </Grid>
         </DialogContent>
 
-        <ActionDialog isLoading={isLoading ?? false} onClose={onClose} />
+        <DialogActions sx={{ pb: { xs: 8, sm: 10 }, justifyContent: 'end', px: { xs: 8, sm: 15 } }}>
+          <Box display='flex' gap={4}>
+            <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={onClose}>
+              Batal
+            </Button>
+            <LoadingButton
+              loading={isLoading}
+              loadingIndicator={<CircularProgress size={20} />}
+              type='submit'
+              variant='contained'
+              disabled={isLoading}
+              color='error'
+            >
+              Ya, Override
+            </LoadingButton>
+          </Box>
+        </DialogActions>
       </form>
     </Dialog>
   )
 }
 
-export default DialogConfirmation
+export default DialogConflict

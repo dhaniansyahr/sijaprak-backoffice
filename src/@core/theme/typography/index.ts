@@ -1,6 +1,6 @@
 const typography = {
   fontFamily: [
-    'Inter',
+    'Montserrat',
     'sans-serif',
     '-apple-system',
     'BlinkMacSystemFont',

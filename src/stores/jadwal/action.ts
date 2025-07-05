@@ -21,17 +21,7 @@ export const getJadwal = createAsyncThunk('get/jadwal', async ({ id }: { id: str
   }
 })
 
-export const getSummaryJadwal = createAsyncThunk('get/jadwal', async ({ data }: { data: any }, { rejectWithValue }) => {
-  try {
-    const response = await api.get(`/jadwal/summary`, data)
-
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error)
-  }
-})
-
-export const checkFreeJadwal = createAsyncThunk(
+export const getAvailableJadwal = createAsyncThunk(
   'check/jadwal',
   async ({ data }: { data: any }, { rejectWithValue }) => {
     try {
@@ -77,11 +67,21 @@ export const deleteJadwal = createAsyncThunk('delete/jadwal', async ({ data }: {
   }
 })
 
-export const generateJawdal = createAsyncThunk(
-  'generate/jadwal',
+export const generateJawdal = createAsyncThunk('generate/jadwal', async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.post(`/jadwal/generate-all`)
+
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
+  }
+})
+
+export const getAllMataKuliah = createAsyncThunk(
+  'get/mata-kuliah',
   async ({ data }: { data: any }, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/jadwal/generate`, data)
+      const response = await api.get(`/jadwal/mata-kuliah`, data)
 
       return response.data
     } catch (error) {
@@ -89,3 +89,37 @@ export const generateJawdal = createAsyncThunk(
     }
   }
 )
+
+// Pertemuan
+export const getAllMeetings = createAsyncThunk(
+  'get/meetings',
+  async ({ jadwalId, data }: { jadwalId: string; data: any }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/meeting/jadwal/${jadwalId}`, data)
+
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error)
+    }
+  }
+)
+
+export const getAbsensi = createAsyncThunk('get/absensi', async ({ id }: { id: string }, { rejectWithValue }) => {
+  try {
+    const response = await api.get(`/meeting/jadwal/${id}/participants`)
+
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
+  }
+})
+
+export const absent = createAsyncThunk('absent/jadwal', async ({ data }: { data: any }, { rejectWithValue }) => {
+  try {
+    const response = await api.post(`/absensi`, data)
+
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
+  }
+})

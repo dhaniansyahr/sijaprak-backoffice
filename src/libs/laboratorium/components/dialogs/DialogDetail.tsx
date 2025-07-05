@@ -1,5 +1,5 @@
 // React Imports
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, memo, useCallback } from 'react'
 
 // MUI Imports
 import { CircularProgress } from '@mui/material'
@@ -9,6 +9,7 @@ import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
+import toast from 'react-hot-toast'
 
 // Utils
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
@@ -20,7 +21,6 @@ import { THistoryLabs } from 'src/stores/laboratorium/types'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import { getRuanganLaboratorium } from 'src/stores/laboratorium/action'
-import toast from 'react-hot-toast'
 
 const Transition = TransitionDialog
 
@@ -31,9 +31,7 @@ const columns: GridColDef[] = [
     headerName: 'No',
     maxWidth: 80,
     sortable: false,
-    renderCell: params => {
-      return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
-    }
+    renderCell: params => <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
   },
   {
     flex: 0.25,
@@ -47,43 +45,48 @@ const columns: GridColDef[] = [
     headerName: 'Nip Kepala Lab',
     sortable: false
   }
-
-  // {
-  //   flex: 0.25,
-  //   field: 'jabatan',
-  //   headerName: 'Masa Jabatan',
-  //   sortable: false
-  // }
 ]
 
-const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps) => {
+interface DialogDetailProps {
+  open: boolean
+  onClose: () => void
+  values: any
+}
+
+const DialogDetailRuanganLaboratorium = memo(({ open, onClose, values }: DialogDetailProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<any>(null)
 
-  const handleGetData = async () => {
+  const handleGetData = useCallback(async () => {
+    if (!values?.id) return
+
     setIsLoading(true)
 
-    // @ts-ignore
-    await dispatch(getRuanganLaboratorium({ id: values?.id })).then(res => {
+    try {
+      // @ts-ignore
+      const res = await dispatch(getRuanganLaboratorium({ id: values.id }))
+
       if (res.meta.requestStatus !== 'fulfilled') {
-        setIsLoading(false)
         toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
 
         return
       }
 
-      setIsLoading(false)
       setData(res.payload.content)
-    })
-  }
+    } catch (error) {
+      toast.error('Gagal mengambil data detail')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [dispatch, values?.id])
 
   useEffect(() => {
-    if (open) {
+    if (open && values?.id) {
       handleGetData()
     }
-  }, [values?.id, open])
+  }, [open, handleGetData])
 
   return (
     <Dialog
@@ -94,7 +97,7 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
       TransitionComponent={Transition}
       PaperProps={{
         sx: {
-          borderRadius: '0px'
+          borderRadius: 0
         }
       }}
     >
@@ -102,7 +105,7 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
 
       <DialogContent
         sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-        style={{ paddingTop: '5px' }}
+        style={{ paddingTop: 5 }}
       >
         {isLoading ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
@@ -161,6 +164,8 @@ const DialogDetailRuanganLaboratorium = ({ open, onClose, values }: IDialogProps
       </DialogContent>
     </Dialog>
   )
-}
+})
+
+DialogDetailRuanganLaboratorium.displayName = 'DialogDetailRuanganLaboratorium'
 
 export default DialogDetailRuanganLaboratorium

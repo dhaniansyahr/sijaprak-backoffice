@@ -1,14 +1,17 @@
-import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/material'
+import { Box, Button, Card, CardContent, CardHeader, CircularProgress, TextField } from '@mui/material'
 import { memo } from 'react'
 import { Icon } from '@iconify/react'
-import { useShiftTable } from '../../hooks/useShitTable'
 import HeaderPage from 'src/components/shared/header-page'
-import DialogAdd from '../dialogs/DialogAdd'
+import { useRouter } from 'next/router'
+import { LoadingButton } from '@mui/lab'
+import { useTable } from '../../hooks/useTable'
 import DataTable from 'src/components/shared/table'
 
-const TableShift = () => {
+const TableJadwal = () => {
+  const router = useRouter()
+
   // Hooks Table
-  const { columns, isAddDialogOpen, setIsAddDialogOpen, tableState, handleSearch, setTableState } = useShiftTable()
+  const { columns, tableState, handleSearch, setTableState, handleGenerate, isGenerating } = useTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
@@ -16,7 +19,7 @@ const TableShift = () => {
 
   return (
     <Card elevation={4}>
-      <HeaderPage title='Management Shift' />
+      <HeaderPage title='Management Jadwal' />
 
       <CardHeader
         title={
@@ -24,7 +27,7 @@ const TableShift = () => {
             <TextField
               fullWidth
               size='small'
-              placeholder='Cari waktu mulai dan waktu berakhir'
+              placeholder='Cari Jadwal'
               onChange={e => handleSearch(e.target.value)}
               sx={{ minWidth: 200, pr: 2 }}
             />
@@ -32,13 +35,23 @@ const TableShift = () => {
         }
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <LoadingButton
+              variant='outlined'
+              color='primary'
+              loading={isGenerating}
+              loadingIndicator={<CircularProgress size={20} />}
+              onClick={handleGenerate}
+              startIcon={<Icon icon='mdi:refresh' />}
+            >
+              Generate
+            </LoadingButton>
             <Button
               variant='contained'
               color='primary'
-              onClick={() => setIsAddDialogOpen(true)}
+              onClick={() => router.push('/jadwal/create')}
               startIcon={<Icon icon='ic:baseline-add' />}
             >
-              Tambah Shift
+              Tambah
             </Button>
           </Box>
         }
@@ -60,10 +73,8 @@ const TableShift = () => {
           onPaginationModelChange={onPaginationModelChange}
         />
       </CardContent>
-
-      <DialogAdd open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
     </Card>
   )
 }
 
-export default memo(TableShift)
+export default memo(TableJadwal)

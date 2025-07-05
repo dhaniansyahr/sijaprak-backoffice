@@ -48,15 +48,21 @@ const AuthProvider = ({ children }: Props) => {
   }, [])
 
   const clearAuthData = useCallback(() => {
-    localStorage.removeItem('userData')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('accessToken')
+    // ✅ Check if we're on client side
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('userData')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('accessToken')
+    }
     setUser(null)
     setLoading(false)
   }, [])
 
   const getUserDataFromStorage = useCallback((): UserDataType | null => {
     try {
+      // ✅ Check if we're on client side
+      if (typeof window === 'undefined') return null
+
       const userData = localStorage.getItem('userData')
 
       return userData ? JSON.parse(userData) : null
@@ -69,6 +75,9 @@ const AuthProvider = ({ children }: Props) => {
 
   const setUserDataToStorage = useCallback((userData: UserDataType) => {
     try {
+      // ✅ Check if we're on client side
+      if (typeof window === 'undefined') return
+
       localStorage.setItem('userData', JSON.stringify(userData))
     } catch (error) {
       console.error('Error saving user data to localStorage:', error)
@@ -76,6 +85,9 @@ const AuthProvider = ({ children }: Props) => {
   }, [])
 
   useEffect(() => {
+    // ✅ Only run on client side
+    if (typeof window === 'undefined') return
+
     // Prevent multiple initialization calls
     if (initAuthRef.current) return
 
@@ -93,15 +105,26 @@ const AuthProvider = ({ children }: Props) => {
 
         setLoading(true)
 
-        // Create abort controller for cleanup
+        // Create abort controller for cleanup with timeout
         abortControllerRef.current = new AbortController()
+
+        // ✅ Add timeout to prevent hanging
+        const timeoutId = setTimeout(() => {
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort()
+          }
+        }, 10000) // 10 second timeout
 
         const response = await api.post(
           authConfig.meEndpoint,
           { token: storedToken },
-          { signal: abortControllerRef.current.signal }
+          {
+            signal: abortControllerRef.current.signal,
+            timeout: 10000 // 10 second timeout
+          }
         )
 
+        clearTimeout(timeoutId)
         console.log('Response Verify Token:', response)
 
         setApiDefaults(storedToken)
@@ -114,17 +137,25 @@ const AuthProvider = ({ children }: Props) => {
         setLoading(false)
       } catch (error: any) {
         // Don't handle aborted requests
-        if (error.name === 'AbortError') return
+        if (error.name === 'AbortError') {
+          console.log('Token verification aborted')
+
+          return
+        }
 
         console.error('Auth initialization error:', error)
+
+        // ✅ On any error, clear auth data and stop loading
         clearAuthData()
       }
     }
 
-    initAuth()
+    // ✅ Add small delay to ensure DOM is ready
+    const timer = setTimeout(initAuth, 100)
 
     // Cleanup function
     return () => {
+      clearTimeout(timer)
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
         abortControllerRef.current = null
@@ -138,15 +169,21 @@ const AuthProvider = ({ children }: Props) => {
         // First API call - login
         const loginResponse = await api.post(authConfig.loginEndpoint, params)
 
-        const token = loginResponse.data.content?.token
+        const token = loginResponse.data.content?.token || loginResponse.data.content?.accessToken
+        const refreshToken = loginResponse.data.content?.refreshToken
         const userData = { ...loginResponse.data.content?.user, role: 'ADMIN' }
 
         if (!token) {
           throw new Error('No token received from login')
         }
 
-        // Store token
-        localStorage.setItem(authConfig.storageTokenKeyName, token)
+        // Store tokens
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(authConfig.storageTokenKeyName, token)
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken)
+          }
+        }
 
         // Set user data
         setUser(userData)
@@ -178,11 +215,12 @@ const AuthProvider = ({ children }: Props) => {
   const handleLogout = useCallback(async () => {
     try {
       setLoading(true)
-      clearAuthData()
 
-      // Clear API defaults
+      // Clear API defaults first
       delete api.defaults.headers.common['Authorization']
       delete api.defaults.headers.common['Timezone']
+
+      clearAuthData()
 
       await router.push('/login')
     } catch (error) {

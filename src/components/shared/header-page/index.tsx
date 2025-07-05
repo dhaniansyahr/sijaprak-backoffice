@@ -1,13 +1,15 @@
 import { Icon } from '@iconify/react'
-import { Box, CardHeader, IconButton, Typography } from '@mui/material'
+import { Box, CardHeader, CardHeaderProps, IconButton, Typography } from '@mui/material'
 import { NextRouter, useRouter } from 'next/router'
 
-interface IHeaderPageProps {
+interface IHeaderPageProps extends CardHeaderProps {
   title: string
   icon?: string
 }
 
-const HeaderPage = ({ title, icon }: IHeaderPageProps) => {
+const HeaderPage = (props: IHeaderPageProps) => {
+  const { title, icon, ...rest } = props
+
   const router: NextRouter = useRouter()
 
   return (
@@ -36,6 +38,7 @@ const HeaderPage = ({ title, icon }: IHeaderPageProps) => {
         alignItems: { xs: 'start', md: 'center' },
         borderBottom: '1px solid #f4f4f4'
       }}
+      {...rest}
     />
   )
 }
