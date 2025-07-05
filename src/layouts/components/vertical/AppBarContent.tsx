@@ -12,6 +12,7 @@ import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Components
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import { useAuth } from 'src/hooks/useAuth'
 import navigation from 'src/navigation/vertical'
 import { getTitleByPath } from 'src/utils/string.format'
 
@@ -25,6 +26,8 @@ interface Props {
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, toggleNavVisibility } = props
+
+  const { user } = useAuth()
 
   // const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
@@ -44,7 +47,17 @@ const AppBarContent = (props: Props) => {
         </Typography>
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
-        <UserDropdown settings={settings} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant='body2' sx={{ color: 'white' }}>
+              {user?.fullName || '-'}
+            </Typography>
+            <Typography variant='body2' sx={{ color: 'white' }}>
+              {/* {user?. || "-"}               */}
+            </Typography>
+          </Box>
+          <UserDropdown settings={settings} />
+        </Box>
       </Box>
     </Box>
   )

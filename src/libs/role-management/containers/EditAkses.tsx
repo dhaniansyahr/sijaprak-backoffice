@@ -1,32 +1,40 @@
-import { Icon } from '@iconify/react'
 import {
-  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
-  CardHeader,
   Checkbox,
   CircularProgress,
   FormControlLabel,
   Grid,
-  IconButton,
   Typography
 } from '@mui/material'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import { NextRouter, useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
+import HeaderPage from 'src/components/shared/header-page'
+import { getAclByRole, getAllFeauture, updateRole } from 'src/stores/role/action'
+import { useAppDispatch } from 'src/utils/dispatch'
 
 export default function EditAkses() {
   const router: NextRouter = useRouter()
+  const dispatch = useAppDispatch()
 
-  const [body, setBody] = useState<any>({ userLevelId: '', acl: [] })
-  const [name, setName] = useState<string>('')
+  const { id } = router.query as { id: string }
+
+  const form = useForm()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [level, setLevel] = useState<any>(null)
   const [features, setFeatures] = useState<any>(null)
+
+  const isActionChecked = (featureName: string, actionName: string) => {
+    const acl = form.getValues('acl') || []
+    const feature = acl.find((f: any) => f.featureName === featureName)
+
+    return feature ? feature.actions.includes(actionName) : false
+  }
 
   const columns = [
     {
@@ -60,13 +68,17 @@ export default function EditAkses() {
               gap: 2
             }}
           >
-            {params?.row?.action?.map((item: any, index: number) => (
+            {params?.row?.actions?.map((item: any, index: number) => (
               <FormControlLabel
                 key={index}
-                control={<Checkbox />}
-                label={item.name}
+                control={<Checkbox checked={isActionChecked(params.row.name, item.name)} />}
+                label={
+                  <Typography variant='body2' sx={{ textTransform: 'capitalize' }}>
+                    {item.name}
+                  </Typography>
+                }
                 onClick={() => {
-                  const acl = [...body.acl]
+                  const acl = [...form.getValues('acl')]
                   const featureIndex = acl.findIndex(f => f.featureName === params.row.name)
 
                   if (featureIndex === -1) {
@@ -90,7 +102,7 @@ export default function EditAkses() {
                     }
                   }
 
-                  setBody({ ...body, acl })
+                  form.setValue('acl', acl)
                 }}
               />
             ))}
@@ -100,134 +112,120 @@ export default function EditAkses() {
     }
   ]
 
-  //   const handleGetAllLevels = async () => {
-  //     setIsLoading(true)
+  const handleGetAcl = async () => {
+    setIsLoading(true)
 
-  //     const body: any = {
-  //       params: {
-  //         page: 1,
-  //         rows: 1000
-  //       }
-  //     }
+    // @ts-ignore
+    await dispatch(getAclByRole({ id })).then((res: any) => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
+        toast.dismiss()
+        toast.error(res?.payload?.response?.data?.message)
 
-  //     // @ts-ignore
-  //     await dispatch(getAllUserLevel({ data: body })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
-  //         setLevel(null)
+        return
+      }
 
-  //         return
-  //       }
+      // Transform the nested response format to your expected format
+      const responseContent = res?.payload?.content || {}
+      const formatAcl: any = []
 
-  //       setIsLoading(false)
-  //       setLevel(res?.payload?.content?.entries)
-  //     })
-  //   }
+      // Convert nested permissions to flat array format
+      Object.entries(responseContent).forEach(([featureName, permissions]: [string, any]) => {
+        const enabledActions = Object.entries(permissions)
+          .filter(([action, isEnabled]) => isEnabled === true)
+          .map(([action]) => action)
 
-  //   const handleGetAllFeatures = async () => {
-  //     setIsLoading(true)
+        if (enabledActions.length > 0) {
+          formatAcl.push({
+            featureName,
+            actions: enabledActions
+          })
+        }
+      })
 
-  //     // @ts-ignore
-  //     await dispatch(getAllFeauture({ data: {} })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
-  //         setFeatures(null)
+      form.setValue('name', res?.payload?.content?.name || '')
+      form.setValue('acl', formatAcl)
+      setIsLoading(false)
+    })
+  }
 
-  //         return
-  //       }
+  console.log('ACL : ', form.watch('acl'))
 
-  //       setIsLoading(false)
-  //       setFeatures(res?.payload?.content)
-  //     })
-  //   }
+  const handleGetAllFeatures = async () => {
+    setIsLoading(true)
 
-  //   const handleCreate = async () => {
-  //     setIsLoading(true)
-  //     toast.loading('Loading...')
+    // @ts-ignore
+    await dispatch(getAllFeauture({ data: {} })).then((res: any) => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
+        setIsLoading(false)
+        setFeatures(null)
 
-  //     // @ts-ignore
-  //     const levelId = await dispatch(createUserLevel({ data: { name } })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.dismiss()
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
+        return
+      }
 
-  //         return
-  //       }
+      setIsLoading(false)
+      setFeatures(res?.payload?.content)
+    })
+  }
 
-  //       return res?.payload?.content?.id
-  //     })
+  const formatUpdateBody = () => {
+    const formData = form.getValues()
+    const acl = formData.acl || []
 
-  //     if (levelId) {
-  //       const bodyAcl: any = {
-  //         ...body,
-  //         userLevelId: levelId
-  //       }
+    return {
+      userLevelId: id,
+      permissions: acl.map((item: any) => ({
+        subject: item.featureName,
+        action: item.actions
+      }))
+    }
+  }
 
-  //       // @ts-ignore
-  //       await dispatch(createAcl({ data: bodyAcl })).then((res: any) => {
-  //         setIsLoading(false)
-  //         toast.dismiss()
-  //         if (res?.meta?.requestStatus !== 'fulfilled') {
-  //           toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
+  const handleUpdate = async () => {
+    setIsLoading(true)
+    toast.loading('Loading...')
 
-  //           return
-  //         }
+    const updateData = formatUpdateBody()
 
-  //         toast.success(res?.payload?.message)
-  //         router.push('/admin/acl')
-  //       })
-  //     }
-  //   }
+    // @ts-ignore
+    await dispatch(updateRole({ data: updateData })).then((res: any) => {
+      setIsLoading(false)
+      toast.dismiss()
 
-  //   useEffect(() => {
-  //     handleGetAllLevels()
-  //     handleGetAllFeatures()
-  //   }, [])
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
+
+        return
+      }
+
+      toast.success(res?.payload?.message)
+      router.back()
+    })
+  }
+
+  useEffect(() => {
+    handleGetAcl()
+    handleGetAllFeatures()
+  }, [id])
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader
-            title={
-              <Box display={'flex'} gap={2} alignItems={'center'}>
-                <IconButton onClick={() => router.back()}>
-                  <Icon icon='ic:baseline-arrow-back' />
-                </IconButton>
-
-                <Typography variant='h6' sx={{ fontWeight: 500 }}>
-                  Edit Akses
-                </Typography>
-              </Box>
-            }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'start', md: 'center' },
-              borderBottom: '1px solid #f4f4f4'
-            }}
-          />
-
-          <CardHeader
+          <HeaderPage
+            title='Edit Role'
+            icon='mdi:arrow-left'
             action={
               <Box display={'flex'} gap={2} alignItems={'center'}>
-                <Button variant='contained' color='secondary' onClick={() => router.push('/admin/acl')}>
+                <Button variant='contained' color='secondary' onClick={() => router.back()}>
                   Batal
                 </Button>
-                <Button variant='contained' color='primary'>
+                <Button variant='contained' color='primary' onClick={handleUpdate}>
                   Simpan
                 </Button>
               </Box>
             }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'start', md: 'center' },
-              borderBottom: '1px solid #f4f4f4'
-            }}
           />
 
           <CardContent style={{ paddingInline: '10px' }}>

@@ -115,7 +115,7 @@ const AuthProvider = ({ children }: Props) => {
           }
         }, 10000) // 10 second timeout
 
-        const response = await api.post(
+        await api.post(
           authConfig.meEndpoint,
           { token: storedToken },
           {
@@ -125,7 +125,6 @@ const AuthProvider = ({ children }: Props) => {
         )
 
         clearTimeout(timeoutId)
-        console.log('Response Verify Token:', response)
 
         setApiDefaults(storedToken)
 

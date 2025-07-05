@@ -4,24 +4,25 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   debounce,
   IconButton,
   Menu,
   MenuItem,
-  TextField,
-  Typography
+  TextField
 } from '@mui/material'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
-import { Fragment, useCallback, useEffect, useState } from 'react'
+import { GridColDef } from '@mui/x-data-grid'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import DialogCreate from '../dialogs/DialogCreate'
-import DialogEdit from '../dialogs/DialogEdit'
-import DialogDelete from '../dialogs/DialogDelete'
 import { NextRouter, useRouter } from 'next/router'
+import { getAllRole } from 'src/stores/role/action'
+import HeaderPage from 'src/components/shared/header-page'
+import DataTable from 'src/components/shared/table'
+import { useAppDispatch } from 'src/utils/dispatch'
+import { enumToCapitalize } from 'src/utils/string.format'
 
 export default function TableRoleManagement() {
   const router: NextRouter = useRouter()
+  const dispatch = useAppDispatch()
 
   const [data, setData] = useState<any>(null)
 
@@ -31,146 +32,119 @@ export default function TableRoleManagement() {
   const [search, setSearch] = useState<any>('')
   const [isMenuOpen, setIsMenuOpen] = useState<any>('')
 
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
-
-  const columns = [
-    {
-      flex: 0.25,
-      field: 'no',
-      headerName: 'No',
-      maxWidth: 80,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'nama',
-      headerName: 'Nama Role',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.nama}</span>
-      }
-    },
-    {
-      flex: 0.25,
-      field: 'action',
-      headerName: 'Aksi',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return (
-          <div>
-            <IconButton id={params?.row?.id} onClick={() => setIsMenuOpen(params?.row?.id)}>
-              <Icon icon='mage:dots' />
-            </IconButton>
-            <Menu
-              id={params?.row?.id}
-              anchorEl={document.getElementById(params?.row?.id)}
-              open={isMenuOpen === params?.row?.id}
-              onClose={() => setIsMenuOpen('')}
-              MenuListProps={{
-                'aria-labelledby': params?.row?.id
-              }}
-            >
-              <MenuItem
-                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-                onClick={() => setIsEditDialogOpen(true)}
-              >
-                <span>Edit Role</span>
-              </MenuItem>
-
-              <MenuItem
-                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <span>Delete Role</span>
-              </MenuItem>
-
-              <MenuItem
-                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-                onClick={() => {
-                  setIsMenuOpen('')
-                  router.push(`/role-management/${params?.row?.id}/create-access`)
-                }}
-              >
-                <span>Tambah Akses</span>
-              </MenuItem>
-
-              <MenuItem
-                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-                onClick={() => {
-                  setIsMenuOpen('')
-                  router.push(`/role-management/${params?.row?.id}/edit-access`)
-                }}
-              >
-                <span>Edit Akses</span>
-              </MenuItem>
-            </Menu>
-          </div>
-        )
-      }
-    }
-  ]
-
-  const handleGetAll = async () => {
-    setIsLoading(true)
-
-    // const body = {
-    //   params: {
-    //     page: isPagination ? page : 1,
-    //     rows: pageSize,
-    //     searchFilters: {
-    //       namaKepala: search
-    //     }
-    //   }
-    // } as any
-
-    // if (!search) {
-    //   delete body.params.searchFilters['namaKepala']
-    // }
-
-    // body.params.searchFilters = JSON.stringify(body.params.searchFilters)
-
-    // // @ts-ignore
-    // await dispatch(getAllCentralUnit({ data: body })).then((res: any) => {
-    //   if (
-    //     !(res?.payload?.content?.entries ?? []).some((obj: any) =>
-    //       (data?.entries ?? []).some((newObj: any) => obj.id === newObj.id)
-    //     ) &&
-    //     isPagination
-    //   ) {
-    //     const _entries = [...(data?.entries ?? []), ...(res?.payload?.content?.entries ?? [])]
-    //     setData(Object.assign({}, res?.payload?.content, { entries: _entries }))
-    //   } else {
-    //     if (!res?.payload?.content?.entries?.length && res?.payload?.content?.totalPage === 1) {
-    //       setData(null)
-    //     } else if (!isPagination) {
-    //       setData(res?.payload?.content)
-    //     }
-    //   }
-    // })
-
-    setData({
-      entries: [
-        {
-          id: 1,
-          nama: 'Laboran'
-        },
-        {
-          id: 2,
-          nama: 'Kepala Laboran'
+  const columns: GridColDef[] = useMemo(
+    () => [
+      {
+        flex: 0.25,
+        field: 'no',
+        headerName: 'No',
+        maxWidth: 80,
+        sortable: false,
+        renderCell: (params: any) => {
+          return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
         }
-      ],
-      totalData: 5
-    })
+      },
+      {
+        flex: 0.25,
+        field: 'name',
+        headerName: 'Nama Role',
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params: any) => {
+          return <span>{enumToCapitalize(params?.row?.name || '-')}</span>
+        }
+      },
+      {
+        flex: 0.25,
+        field: 'action',
+        headerName: 'Aksi',
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params: any) => {
+          return (
+            <div>
+              <IconButton id={params?.row?.id} onClick={() => setIsMenuOpen(params?.row?.id)}>
+                <Icon icon='mage:dots' />
+              </IconButton>
+              <Menu
+                id={params?.row?.id}
+                anchorEl={document.getElementById(params?.row?.id)}
+                open={isMenuOpen === params?.row?.id}
+                onClose={() => setIsMenuOpen('')}
+                MenuListProps={{
+                  'aria-labelledby': params?.row?.id
+                }}
+              >
+                <MenuItem
+                  sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                  onClick={() => router.push(`/role-management/${params?.row?.id}/edit`)}
+                >
+                  <span>Edit Role</span>
+                </MenuItem>
 
-    setIsLoading(false)
-  }
+                <MenuItem
+                  sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                  onClick={() => router.push(`/role-management/${params?.row?.id}/duplicate`)}
+                >
+                  <span>Duplicate Role</span>
+                </MenuItem>
+
+                {/* <MenuItem
+                  sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                  onClick={() => router.push(`/role-management/${params?.row?.id}/delete`)}
+                >
+                  <span>Delete</span>
+                </MenuItem> */}
+              </Menu>
+            </div>
+          )
+        }
+      }
+    ],
+    [isMenuOpen, setIsMenuOpen]
+  )
+
+  const handleGetAll = useCallback(
+    async (isPagination = false) => {
+      setIsLoading(true)
+
+      const body = {
+        params: {
+          page: isPagination ? page : 1,
+          rows: pageSize,
+          searchFilters: {
+            nama: search
+          }
+        }
+      } as any
+
+      if (!search) delete body.params.searchFilters
+
+      body.params.searchFilters = JSON.stringify(body.params.searchFilters)
+
+      // @ts-ignore
+      await dispatch(getAllRole({ data: body })).then((res: any) => {
+        if (
+          !(res?.payload?.content?.entries ?? []).some((obj: any) =>
+            (data?.entries ?? []).some((newObj: any) => obj.id === newObj.id)
+          ) &&
+          isPagination
+        ) {
+          const _entries = [...(data?.entries ?? []), ...(res?.payload?.content?.entries ?? [])]
+          setData(Object.assign({}, res?.payload?.content, { entries: _entries }))
+        } else {
+          if (!res?.payload?.content?.entries?.length && res?.payload?.content?.totalPage === 1) {
+            setData(null)
+          } else if (!isPagination) {
+            setData(res?.payload?.content)
+          }
+        }
+      })
+
+      setIsLoading(false)
+    },
+    [page, pageSize, search]
+  )
 
   const handleSearch = useCallback(
     debounce((query: any) => {
@@ -191,93 +165,57 @@ export default function TableRoleManagement() {
     }
   }, [page, pageSize])
 
+  const onPaginationModelChange = (newModel: any) => {
+    setPage(newModel.page + 1)
+    setPageSize(newModel.pageSize)
+  }
+
   return (
-    <Fragment>
-      <Card sx={{ mb: 4 }} elevation={4}>
-        <CardHeader
-          title={
-            <Box>
-              <Typography variant='h6' fontWeight={500}>
-                Manajemen Role
-              </Typography>
-            </Box>
-          }
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'start', md: 'center' },
-            borderBottom: '1px solid #f4f4f4'
-          }}
+    <Card>
+      <HeaderPage title='Manajemen Role' />
+
+      <CardHeader
+        title={
+          <Box display={'flex'} flexWrap={'wrap'} gap={'12px'} sx={{ mb: { xs: 8, md: 0 }, width: '100%' }}>
+            <TextField
+              size='small'
+              placeholder='Cari Nama'
+              onChange={(e: any) => handleSearch(e.target.value)}
+              sx={{ minWidth: 200, pr: 2 }}
+              fullWidth
+            />
+          </Box>
+        }
+        action={
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={() => router.push('/role-management/create')}
+              startIcon={<Icon icon='ic:baseline-add' />}
+            >
+              Tambah Role
+            </Button>
+          </Box>
+        }
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'start', md: 'center' },
+          borderBottom: '1px solid #f4f4f4'
+        }}
+      />
+
+      <CardContent style={{ paddingInline: '10px' }}>
+        <DataTable
+          data={data}
+          columns={columns}
+          page={page}
+          pageSize={pageSize}
+          isLoading={isLoading}
+          onPaginationModelChange={onPaginationModelChange}
         />
-      </Card>
-      <Card elevation={4}>
-        <CardHeader
-          title={
-            <Box display={'flex'} flexWrap={'wrap'} gap={'12px'} sx={{ mb: { xs: 8, md: 0 }, width: '100%' }}>
-              <TextField
-                size='small'
-                placeholder='Cari Nama'
-                onChange={(e: any) => handleSearch(e.target.value)}
-                sx={{ minWidth: 200 }}
-              />
-            </Box>
-          }
-          action={
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <Button
-                variant='contained'
-                color='primary'
-                sx={{ mb: 2 }}
-                onClick={() => setIsCreateDialogOpen(true)}
-                startIcon={<Icon icon='ic:baseline-add' />}
-              >
-                Tambah Role
-              </Button>
-            </Box>
-          }
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'start', md: 'center' },
-            borderBottom: '1px solid #f4f4f4'
-          }}
-        />
-        <CardContent style={{ paddingInline: '10px' }}>
-          <DataGrid
-            autoHeight
-            rows={data?.entries ?? []}
-            columns={columns}
-            pagination
-            disableColumnFilter
-            disableColumnMenu
-            disableColumnSelector
-            rowCount={data?.totalData ?? 0}
-            paginationModel={{
-              page: page - 1,
-              pageSize: pageSize
-            }}
-            onPaginationModelChange={(newModel: any) => {
-              setPage(newModel.page + 1)
-              setPageSize(newModel.pageSize)
-            }}
-            loading={isLoading}
-            slots={{
-              loadingOverlay: CircularProgress
-            }}
-            sx={{
-              [`& .${gridClasses.cell}`]: {
-                py: 1
-              }
-            }}
-          />
-        </CardContent>
-      </Card>
-
-      <DialogCreate open={isCreateDialogOpen} onClose={(v: boolean) => setIsCreateDialogOpen(v)} />
-
-      <DialogEdit open={isEditDialogOpen} onClose={(v: boolean) => setIsEditDialogOpen(v)} />
-
-      <DialogDelete open={isDeleteDialogOpen} onClose={(v: boolean) => setIsDeleteDialogOpen(v)} />
-    </Fragment>
+      </CardContent>
+    </Card>
   )
 }

@@ -22,9 +22,6 @@ import Navigation from './components/vertical/navigation'
 import Footer from './components/shared-components/footer'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
 import { hexToRGBA } from '../utils/hex-to-rgba'
-import { Typography } from '@mui/material'
-import { getTitleByPath, kebabCaseToTitleCase } from 'src/utils/string.format'
-import { useRouter } from 'next/router'
 
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',

@@ -1,6 +1,7 @@
 export function kebabCaseToTitleCase(str: string) {
   return str.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
+
 export function getTitleByPath(options: any, path: any, parentTitle = ''): any {
   const normalizedPath = path.endsWith('/') ? path.slice(0, -1) : path
   let matchedTitle = null
@@ -27,4 +28,11 @@ export function getTitleByPath(options: any, path: any, parentTitle = ''): any {
   }
 
   return matchedTitle
+}
+
+export function enumToCapitalize(enumValue: string) {
+  return enumValue
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }

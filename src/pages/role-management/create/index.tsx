@@ -1,0 +1,3 @@
+import CreateAkses from 'src/libs/role-management/containers/CreateAkses'
+
+export default CreateAkses

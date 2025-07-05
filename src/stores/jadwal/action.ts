@@ -123,3 +123,17 @@ export const absent = createAsyncThunk('absent/jadwal', async ({ data }: { data:
     return rejectWithValue(error)
   }
 })
+
+// Pendaftaran Asisten
+export const daftarAsisten = createAsyncThunk(
+  'daftar/asisten',
+  async ({ data }: { data: any }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/pendaftaran-asisten-lab`, data)
+
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error)
+    }
+  }
+)

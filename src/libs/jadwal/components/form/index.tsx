@@ -3,8 +3,8 @@ import { hariOptions } from '../../containers/CreateJadwal'
 import { Control, Controller } from 'react-hook-form'
 import { useEffect, useState } from 'react'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { getAllShift } from 'src/stores/shift/action'
-import { getAllRuanganLaboratorium } from 'src/stores/laboratorium/action'
+import { getAllShift } from 'src/stores/master-data/shift/action'
+import { getAllRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
 import { getAllMataKuliah } from 'src/stores/jadwal/action'
 
 interface IFormJadwalProps {

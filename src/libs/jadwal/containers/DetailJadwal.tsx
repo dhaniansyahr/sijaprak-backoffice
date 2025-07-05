@@ -1,11 +1,10 @@
-import { Card, CardContent, Divider, Grid, Typography } from '@mui/material'
+import { Card, CardContent, CircularProgress, Divider, Grid, Typography } from '@mui/material'
 import { Fragment, memo, useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import { useAppDispatch } from 'src/utils/dispatch'
 import HeaderPage from 'src/components/shared/header-page'
-import DefaultTable from 'src/components/shared/table'
 import { getJadwal } from 'src/stores/jadwal/action'
-import DataTable from 'src/components/shared/table'
+import { DataGrid, gridClasses } from '@mui/x-data-grid'
 
 const DetailValue = memo(({ data }: { data: any }) => {
   return (
@@ -102,7 +101,7 @@ export default function DetailJadwal() {
       minWidth: 160,
       sortable: false,
       renderCell: (params: any) => {
-        return <span>{params?.row?.name ?? '-'}</span>
+        return <span>{params?.row?.nama ?? '-'}</span>
       }
     },
     {
@@ -155,12 +154,34 @@ export default function DetailJadwal() {
           </Grid>
 
           <Grid item xs={12}>
-            <DataTable
-              data={state?.data?.mahasiswa ?? []}
+            <DataGrid
+              autoHeight
+              getRowHeight={() => 'auto'}
+              rows={state?.data?.mahasiswa ?? []}
               columns={columns}
-              page={1}
-              pageSize={10}
-              isLoading={state?.isLoading}
+              getRowId={(row: any) => row?.npm}
+              hideFooter
+              disableColumnFilter
+              disableColumnMenu
+              disableColumnSelector
+              rowCount={state?.data?.totalData ?? 0}
+              loading={state?.isLoading}
+              slots={{
+                loadingOverlay: CircularProgress
+              }}
+              sx={{
+                [`& .${gridClasses.cell}`]: {
+                  py: 2
+                },
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  fontWeight: 600
+                },
+                '& .MuiDataGrid-row:hover': {
+                  backgroundColor: 'action.hover'
+                }
+              }}
             />
           </Grid>
         </Grid>

@@ -1,30 +1,38 @@
-import { Icon } from '@iconify/react'
 import {
   Box,
   Button,
   Card,
   CardContent,
-  CardHeader,
   Checkbox,
   CircularProgress,
   FormControlLabel,
   Grid,
-  IconButton,
   Typography
 } from '@mui/material'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import { NextRouter, useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
+import HeaderPage from 'src/components/shared/header-page'
+import { getAllFeauture, updateRole } from 'src/stores/role/action'
+import { useAppDispatch } from 'src/utils/dispatch'
 
 export default function CreateAkses() {
   const router: NextRouter = useRouter()
+  const dispatch = useAppDispatch()
 
-  const [body, setBody] = useState<any>({ userLevelId: '', acl: [] })
-  const [name, setName] = useState<string>('')
+  const form = useForm()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [level, setLevel] = useState<any>(null)
   const [features, setFeatures] = useState<any>(null)
+
+  const isActionChecked = (featureName: string, actionName: string) => {
+    const acl = form.getValues('acl') || []
+    const feature = acl.find((f: any) => f.featureName === featureName)
+
+    return feature ? feature.actions.includes(actionName) : false
+  }
 
   const columns = [
     {
@@ -58,13 +66,17 @@ export default function CreateAkses() {
               gap: 2
             }}
           >
-            {params?.row?.action?.map((item: any, index: number) => (
+            {params?.row?.actions?.map((item: any, index: number) => (
               <FormControlLabel
                 key={index}
-                control={<Checkbox />}
-                label={item.name}
+                control={<Checkbox checked={isActionChecked(params.row.name, item.name)} />}
+                label={
+                  <Typography variant='body2' sx={{ textTransform: 'capitalize' }}>
+                    {item.name}
+                  </Typography>
+                }
                 onClick={() => {
-                  const acl = [...body.acl]
+                  const acl = [...form.getValues('acl')]
                   const featureIndex = acl.findIndex(f => f.featureName === params.row.name)
 
                   if (featureIndex === -1) {
@@ -88,7 +100,7 @@ export default function CreateAkses() {
                     }
                   }
 
-                  setBody({ ...body, acl })
+                  form.setValue('acl', acl)
                 }}
               />
             ))}
@@ -98,154 +110,102 @@ export default function CreateAkses() {
     }
   ]
 
-  //   const handleGetAllLevels = async () => {
-  //     setIsLoading(true)
+  const handleGetAllFeatures = async () => {
+    setIsLoading(true)
 
-  //     const body: any = {
-  //       params: {
-  //         page: 1,
-  //         rows: 1000
-  //       }
-  //     }
+    // @ts-ignore
+    await dispatch(getAllFeauture({ data: {} })).then((res: any) => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
+        setIsLoading(false)
+        setFeatures(null)
 
-  //     // @ts-ignore
-  //     await dispatch(getAllUserLevel({ data: body })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
-  //         setLevel(null)
+        return
+      }
 
-  //         return
-  //       }
+      setIsLoading(false)
+      setFeatures(res?.payload?.content)
+    })
+  }
 
-  //       setIsLoading(false)
-  //       setLevel(res?.payload?.content?.entries)
-  //     })
-  //   }
+  const formatUpdateBody = () => {
+    const formData = form.getValues()
+    const acl = formData.acl || []
 
-  //   const handleGetAllFeatures = async () => {
-  //     setIsLoading(true)
+    return {
+      namaRole: '',
+      permissions: acl.map((item: any) => ({
+        subject: item.featureName,
+        action: item.actions
+      }))
+    }
+  }
 
-  //     // @ts-ignore
-  //     await dispatch(getAllFeauture({ data: {} })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
-  //         setFeatures(null)
+  const onSubmit = form.handleSubmit(async () => {
+    setIsLoading(true)
+    toast.loading('Loading...')
 
-  //         return
-  //       }
+    const updateData = formatUpdateBody()
 
-  //       setIsLoading(false)
-  //       setFeatures(res?.payload?.content)
-  //     })
-  //   }
+    // @ts-ignore
+    await dispatch(updateRole({ data: updateData })).then((res: any) => {
+      setIsLoading(false)
+      toast.dismiss()
 
-  //   const handleCreate = async () => {
-  //     setIsLoading(true)
-  //     toast.loading('Loading...')
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
 
-  //     // @ts-ignore
-  //     const levelId = await dispatch(createUserLevel({ data: { name } })).then((res: any) => {
-  //       if (res?.meta?.requestStatus !== 'fulfilled') {
-  //         toast.dismiss()
-  //         toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-  //         setIsLoading(false)
+        return
+      }
 
-  //         return
-  //       }
+      toast.success(res?.payload?.message)
+      router.back()
+    })
+  })
 
-  //       return res?.payload?.content?.id
-  //     })
-
-  //     if (levelId) {
-  //       const bodyAcl: any = {
-  //         ...body,
-  //         userLevelId: levelId
-  //       }
-
-  //       // @ts-ignore
-  //       await dispatch(createAcl({ data: bodyAcl })).then((res: any) => {
-  //         setIsLoading(false)
-  //         toast.dismiss()
-  //         if (res?.meta?.requestStatus !== 'fulfilled') {
-  //           toast.error(res?.payload?.response?.data?.errors?.[0]?.message ?? res?.payload?.response?.data?.message)
-
-  //           return
-  //         }
-
-  //         toast.success(res?.payload?.message)
-  //         router.push('/admin/acl')
-  //       })
-  //     }
-  //   }
-
-  //   useEffect(() => {
-  //     handleGetAllLevels()
-  //     handleGetAllFeatures()
-  //   }, [])
+  useEffect(() => {
+    handleGetAllFeatures()
+  }, [])
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader
-            title={
-              <Box display={'flex'} gap={2} alignItems={'center'}>
-                <IconButton onClick={() => router.back()}>
-                  <Icon icon='ic:baseline-arrow-back' />
-                </IconButton>
-
-                <Typography variant='h6' sx={{ fontWeight: 500 }}>
-                  Tambah Akses
-                </Typography>
-              </Box>
-            }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'start', md: 'center' },
-              borderBottom: '1px solid #f4f4f4'
-            }}
-          />
-
-          <CardHeader
-            action={
-              <Box display={'flex'} gap={2} alignItems={'center'}>
-                <Button variant='contained' color='secondary' onClick={() => router.push('/admin/acl')}>
-                  Batal
-                </Button>
-                <Button variant='contained' color='primary'>
-                  Simpan
-                </Button>
-              </Box>
-            }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              alignItems: { xs: 'start', md: 'center' },
-              borderBottom: '1px solid #f4f4f4'
-            }}
-          />
-
-          <CardContent style={{ paddingInline: '10px' }}>
-            <DataGrid
-              autoHeight
-              rows={features ?? []}
-              columns={columns}
-              rowCount={features?.length ?? 0}
-              loading={isLoading}
-              hideFooter
-              slots={{
-                loadingOverlay: CircularProgress
-              }}
-              sx={{
-                [`& .${gridClasses.cell}`]: {
-                  py: 1
-                }
-              }}
+          <form action='' onSubmit={onSubmit}>
+            <HeaderPage
+              title='Tambah Role Baru'
+              icon='mdi:arrow-left'
+              action={
+                <Box display={'flex'} gap={2} alignItems={'center'}>
+                  <Button variant='contained' color='secondary' onClick={() => router.back()}>
+                    Batal
+                  </Button>
+                  <Button variant='contained' color='primary' type='submit'>
+                    Simpan
+                  </Button>
+                </Box>
+              }
             />
-          </CardContent>
+
+            <CardContent style={{ paddingInline: '10px' }}>
+              <DataGrid
+                autoHeight
+                rows={features ?? []}
+                columns={columns}
+                rowCount={features?.length ?? 0}
+                loading={isLoading}
+                hideFooter
+                slots={{
+                  loadingOverlay: CircularProgress
+                }}
+                sx={{
+                  [`& .${gridClasses.cell}`]: {
+                    py: 1
+                  }
+                }}
+              />
+            </CardContent>
+          </form>
         </Card>
       </Grid>
     </Grid>

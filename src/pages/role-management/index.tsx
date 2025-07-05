@@ -1,5 +1,3 @@
-import MainRoleManagementContainer from 'src/libs/role-management/containers'
+import RoleContainer from 'src/libs/role-management/containers'
 
-export default function index() {
-  return <MainRoleManagementContainer />
-}
+export default RoleContainer

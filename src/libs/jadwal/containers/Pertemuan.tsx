@@ -32,15 +32,16 @@ export default function PertemuanContainer() {
         return <span>{params.api.getAllRowIds().indexOf(params.id) + 1}</span>
       }
     },
-    {
-      flex: 0.25,
-      field: 'mataKuliah',
-      headerName: 'Mata Kuliah',
-      sortable: false,
-      renderCell: (params: any) => {
-        return <span>{params?.row?.jadwal?.matakuliah?.nama ?? '-'}</span>
-      }
-    },
+
+    // {
+    //   flex: 0.25,
+    //   field: 'mataKuliah',
+    //   headerName: 'Mata Kuliah',
+    //   sortable: false,
+    //   renderCell: (params: any) => {
+    //     return <span>{params?.row?.jadwal?.matakuliah?.nama ?? '-'}</span>
+    //   }
+    // },
     {
       flex: 0.25,
       field: 'tanggal',
@@ -129,7 +130,10 @@ export default function PertemuanContainer() {
 
   return (
     <Card sx={{ padding: '16px' }}>
-      <HeaderPage icon='meteor-icons:arrow-left' title='Detail Pertemuan' />
+      <HeaderPage
+        icon='meteor-icons:arrow-left'
+        title={'Detail Pertemuan - ' + state?.data?.entries?.[0]?.jadwal?.matakuliah?.nama}
+      />
 
       <CardContent sx={{ padding: '24px !important' }}>
         <DataTable
