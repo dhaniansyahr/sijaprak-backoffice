@@ -13,6 +13,7 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: 'Master Data',
       path: '/master-data',
+      subject: 'MASTER_DATA',
       children: [
         {
           title: 'Mahasiswa',

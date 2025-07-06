@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import { useAuth } from 'src/hooks/useAuth'
 import { pendaftaranAsistenLab } from 'src/stores/asisten-lab/action'
 import { useAppDispatch } from 'src/utils/dispatch'
 
@@ -15,6 +16,8 @@ interface IDialogPendaftaranProps {
 const DialogPendaftaran = ({ dialogRef, jadwalId }: IDialogPendaftaranProps) => {
   const dispatch = useAppDispatch()
 
+  const { user } = useAuth()
+
   const [isLoading, setIsLoading] = useState(false)
 
   const { control, handleSubmit, setError } = useForm()
@@ -24,7 +27,7 @@ const DialogPendaftaran = ({ dialogRef, jadwalId }: IDialogPendaftaranProps) => 
 
     const body = {
       jadwalId,
-      mahasiswaId: '01JZCRA9V7QY0Z3XJN57KT717A',
+      mahasiswaId: user?.id,
       nilaiTeori: data.nilaiTeori,
       nilaiPraktikum: data.nilaiPraktikum,
       nilaiAkhir: data.nilaiAkhir

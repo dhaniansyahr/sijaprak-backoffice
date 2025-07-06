@@ -11,7 +11,6 @@ import toast from 'react-hot-toast'
 
 // Redux & Types
 import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
-import { TAssignKepalaLab, TRuanganLaboratorium } from 'src/stores/ruangan/types'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { assignKepalaLab } from 'src/stores/master-data/ruangan/action'
 
@@ -26,7 +25,7 @@ const Transition = TransitionDialog
 interface IDialogAssignKepalaLab {
   open: boolean
   onClose: () => void
-  values: TRuanganLaboratorium
+  values: any
 }
 
 const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepalaLab) => {
@@ -35,7 +34,7 @@ const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepa
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<any>([])
 
-  const { control, reset, handleSubmit } = useForm<TAssignKepalaLab>({
+  const { control, reset, handleSubmit } = useForm<any>({
     values: {
       nama: values?.namaKepalaLab || '',
       nip: values?.nipKepalaLab || ''
@@ -49,7 +48,7 @@ const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepa
     dispatch(setIsRefresh())
   }, [reset, onClose, dispatch])
 
-  const onSubmit: SubmitHandler<TAssignKepalaLab> = useCallback(
+  const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
       setIsLoading(true)
       setErrors([])

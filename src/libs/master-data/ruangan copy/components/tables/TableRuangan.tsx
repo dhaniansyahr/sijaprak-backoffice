@@ -3,7 +3,6 @@ import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/mate
 import { lazy, Suspense, memo } from 'react'
 
 // Hooks & types
-import { TRuanganLaboratorium } from 'src/stores/ruangan/types'
 import HeaderPage from 'src/components/shared/header-page'
 import { useRuanganTable } from '../../hook/useRuanganTable'
 import DataTable from 'src/components/shared/table'
@@ -102,7 +101,7 @@ const TableRuangan = memo(() => {
           <DialogAssignKepalaLab
             open={state.isChange}
             onClose={() => handleCloseDialog('isChange')}
-            values={state.rowSelected as TRuanganLaboratorium}
+            values={state.rowSelected}
           />
         )}
       </Suspense>

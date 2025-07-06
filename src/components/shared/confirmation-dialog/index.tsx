@@ -42,7 +42,7 @@ const DialogConfirmation = ({
       isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          dialogRef.current?.setIsOpen(false)
+          dialogRef.current?.close()
         }
       }}
       title={''}

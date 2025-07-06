@@ -1,12 +1,12 @@
-import { Box, Card, CardContent, Checkbox, Typography } from '@mui/material'
+import { Box, Card, CardContent, Checkbox, CircularProgress, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import HeaderPage from 'src/components/shared/header-page'
-import DataTable from 'src/components/shared/table'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 import { absent, getAbsensi } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
+import { DataGrid, gridClasses } from '@mui/x-data-grid'
 
 export default function AbsensiContainer() {
   const router: NextRouter = useRouter()
@@ -52,7 +52,7 @@ export default function AbsensiContainer() {
         return <span>{nomorIdentitas ?? '-'}</span>
       }
     },
-    ...(data?.entries?.[0]?.meetings?.map((meeting: any) => ({
+    ...(data?.[0]?.meetings?.map((meeting: any) => ({
       flex: 0.25,
       field: `pertemuan_${meeting.pertemuan}`,
       headerName: `Pertemuan ${meeting.pertemuan}`,
@@ -102,12 +102,7 @@ export default function AbsensiContainer() {
 
       const content = res.payload.content
 
-      const data = {
-        entries: content,
-        totalData: content.length
-      }
-
-      setData(data)
+      setData(content)
     })
 
     setIsLoading(false)
@@ -135,7 +130,8 @@ export default function AbsensiContainer() {
       toast.dismiss()
       toast.success('Berhasil melakukan absensi!')
 
-      dispatch(setIsRefresh())
+      // @ts-ignore
+      dispatch(setIsRefresh(!isRefresh))
     })
   }
 
@@ -148,7 +144,34 @@ export default function AbsensiContainer() {
       <HeaderPage title='Detail Absensi' icon='mdi:arrow-left' />
 
       <CardContent sx={{ padding: '24px !important' }}>
-        <DataTable data={data} columns={columns} hideFooter isLoading={isLoading} />
+        <DataGrid
+          autoHeight
+          getRowHeight={() => 'auto'}
+          rows={data ?? []}
+          columns={columns}
+          hideFooter
+          disableColumnFilter
+          disableColumnMenu
+          disableColumnSelector
+          rowCount={data?.totalData ?? 0}
+          loading={isLoading}
+          slots={{
+            loadingOverlay: CircularProgress
+          }}
+          sx={{
+            [`& .${gridClasses.cell}`]: {
+              py: 1
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'primary.main',
+              color: 'white',
+              fontWeight: 600
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: 'action.hover'
+            }
+          }}
+        />
       </CardContent>
     </Card>
   )

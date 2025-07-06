@@ -11,6 +11,16 @@ export const getAllRole = createAsyncThunk('get/role', async ({ data }: { data: 
   }
 })
 
+export const getRole = createAsyncThunk('get/role', async ({ id }: { id: string }, { rejectWithValue }) => {
+  try {
+    const response = await api.get(`/user-levels/${id}`)
+
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
+  }
+})
+
 export const getAclByRole = createAsyncThunk(
   'get/acl-by-role',
   async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
@@ -47,15 +57,12 @@ export const createRole = createAsyncThunk('create/role', async ({ data }: { dat
   }
 })
 
-export const updateRole = createAsyncThunk(
-  'update/role',
-  async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
-    try {
-      const response = await api.put(`/acl/${id}`, data)
+export const updateRole = createAsyncThunk('update/role', async ({ data }: { data: any }, { rejectWithValue }) => {
+  try {
+    const response = await api.put(`/acl`, data)
 
-      return response.data
-    } catch (error) {
-      return rejectWithValue(error)
-    }
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
   }
-)
+})

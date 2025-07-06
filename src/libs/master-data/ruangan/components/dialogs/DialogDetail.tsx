@@ -13,11 +13,9 @@ import toast from 'react-hot-toast'
 
 // Utils
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-import { IDialogProps } from 'src/utils/response.utils'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
-import { THistoryLabs } from 'src/stores/ruangan/types'
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import { getRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
@@ -140,7 +138,7 @@ const DialogDetailRuanganLaboratorium = memo(({ open, onClose, values }: DialogD
             </Grid>
 
             <Grid item xs={12}>
-              <DataGrid<THistoryLabs>
+              <DataGrid
                 autoHeight
                 rows={data?.historyLabs ?? []}
                 columns={columns}

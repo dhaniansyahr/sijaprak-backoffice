@@ -6,12 +6,14 @@ import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import { useTable } from '../../hooks/useTable'
 import DataTable from 'src/components/shared/table'
+import DialogAssignAsistenLab from '../dialogs/DialogAssignAsistenLab'
 
 const TableJadwal = () => {
   const router = useRouter()
 
   // Hooks Table
-  const { columns, tableState, handleSearch, setTableState, handleGenerate, isGenerating } = useTable()
+  const { columns, tableState, handleSearch, setTableState, handleGenerate, isGenerating, assignAsistenLabRef, row } =
+    useTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
@@ -73,6 +75,8 @@ const TableJadwal = () => {
           onPaginationModelChange={onPaginationModelChange}
         />
       </CardContent>
+
+      <DialogAssignAsistenLab dialogRef={assignAsistenLabRef} id={row?.id} />
     </Card>
   )
 }

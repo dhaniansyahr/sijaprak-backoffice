@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import HeaderPage from 'src/components/shared/header-page'
-import { getAclByRole, getAllFeauture, updateRole } from 'src/stores/role/action'
+import { getAclByRole, getAllFeauture, getAllRole, getRole, updateRole } from 'src/stores/role/action'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 export default function EditAkses() {
@@ -28,6 +28,7 @@ export default function EditAkses() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [features, setFeatures] = useState<any>(null)
+  const [role, setRole] = useState<any>(null)
 
   const isActionChecked = (featureName: string, actionName: string) => {
     const acl = form.getValues('acl') || []
@@ -169,12 +170,23 @@ export default function EditAkses() {
     })
   }
 
+  const handleGetRole = async () => {
+    // @ts-ignore
+    await dispatch(getRole({ id })).then(res => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        return
+      }
+
+      setRole(res?.payload?.content)
+    })
+  }
+
   const formatUpdateBody = () => {
     const formData = form.getValues()
     const acl = formData.acl || []
 
     return {
-      userLevelId: id,
+      roleName: role?.name,
       permissions: acl.map((item: any) => ({
         subject: item.featureName,
         action: item.actions
@@ -207,6 +219,7 @@ export default function EditAkses() {
   useEffect(() => {
     handleGetAcl()
     handleGetAllFeatures()
+    handleGetRole()
   }, [id])
 
   return (

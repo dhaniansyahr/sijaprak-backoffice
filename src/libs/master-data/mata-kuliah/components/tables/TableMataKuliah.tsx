@@ -1,28 +1,18 @@
 // React Imports
 import { Box, Card, CardContent, CardHeader, TextField } from '@mui/material'
-import { lazy, Suspense, memo } from 'react'
+import { memo } from 'react'
 
 // Hooks & types
 import HeaderPage from 'src/components/shared/header-page'
 import DataTable from 'src/components/shared/table'
 import { useTable } from './useTable'
 
-// Lazy load dialogs to reduce initial bundle size
-const DialogDetailRuanganLaboratorium = lazy(() => import('../dialogs/DialogDetail'))
-
-// Minimal loading fallback
-const DialogLoader = () => null
-
 const TableMataKuliah = memo(() => {
   // Hooks
-  const { columns, state, setState, tableState, setTableState, handleSearch } = useTable()
+  const { columns, tableState, setTableState, handleSearch } = useTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
-  }
-
-  const handleCloseDialog = (dialogType: keyof typeof state) => {
-    setState(prev => ({ ...prev, [dialogType]: false }))
   }
 
   return (
@@ -61,7 +51,7 @@ const TableMataKuliah = memo(() => {
         </CardContent>
       </Card>
 
-      <Suspense fallback={<DialogLoader />}>
+      {/* <Suspense fallback={<DialogLoader />}>
         {state.isDetail && (
           <DialogDetailRuanganLaboratorium
             open={state.isDetail}
@@ -69,7 +59,7 @@ const TableMataKuliah = memo(() => {
             values={state.rowSelected}
           />
         )}
-      </Suspense>
+      </Suspense> */}
     </>
   )
 })

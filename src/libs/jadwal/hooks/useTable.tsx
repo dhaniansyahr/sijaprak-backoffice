@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ActionTable from 'src/components/shared/action-table'
+import { DialogRef } from 'src/components/shared/dialog'
 import { generateJawdal, getAllJadwal } from 'src/stores/jadwal/action'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { ITableState } from 'src/types'
@@ -17,6 +18,7 @@ export const useTable = () => {
   const { isRefresh } = useAppSelector(state => state.jadwal)
 
   const [isMenuOpen, setIsMenuOpen] = useState<any>('')
+  const [row, setRow] = useState<any>(null)
 
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -29,6 +31,7 @@ export const useTable = () => {
   })
 
   const debouncedSearchRef = useRef<any>(null)
+  const assignAsistenLabRef = useRef<DialogRef>(null)
 
   const columns: GridColDef[] = [
     {
@@ -69,6 +72,12 @@ export const useTable = () => {
     },
     {
       flex: 0.25,
+      field: 'kelas',
+      headerName: 'Kelas',
+      sortable: false
+    },
+    {
+      flex: 0.25,
       field: 'shiftTime',
       headerName: 'Waktu Shift',
       sortable: false,
@@ -101,11 +110,11 @@ export const useTable = () => {
       renderCell: params => {
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* {params.row.asisten?.map((item: any, index: number) => (
+            {params.row.asisten?.map((item: any, index: number) => (
               <span key={index}>
-                {item?.name} - {item?.nip}
+                {item?.Mahasiswa?.[0]?.nama} ({item?.Mahasiswa?.[0]?.npm})
               </span>
-            ))} */}
+            ))}
           </Box>
         )
       }
@@ -127,7 +136,8 @@ export const useTable = () => {
               sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
               onClick={() => {
                 setIsMenuOpen('')
-                router.push(`/jadwal/${params?.row?.id}/assign-assisten`)
+                setRow(params?.row)
+                assignAsistenLabRef?.current?.open()
               }}
             >
               <Icon icon='solar:user-id-broken' />
@@ -141,8 +151,8 @@ export const useTable = () => {
                 router.push(`/jadwal/${params?.row?.id}/meetings`)
               }}
             >
-              <Icon icon='mdi:calendar-outline' />
-              <span>Detail Pertemuan</span>
+              <Icon icon='mdi:edit' />
+              <span>Update Jadwal</span>
             </MenuItem>
 
             <MenuItem
@@ -259,6 +269,8 @@ export const useTable = () => {
     handleGenerate,
     tableState,
     setTableState,
-    handleSearch
+    handleSearch,
+    assignAsistenLabRef,
+    row
   }
 }

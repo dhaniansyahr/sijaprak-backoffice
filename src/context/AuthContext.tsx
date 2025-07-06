@@ -170,7 +170,14 @@ const AuthProvider = ({ children }: Props) => {
 
         const token = loginResponse.data.content?.token || loginResponse.data.content?.accessToken
         const refreshToken = loginResponse.data.content?.refreshToken
-        const userData = { ...loginResponse.data.content?.user, role: 'ADMIN' }
+
+        const userData: UserDataType = {
+          id: loginResponse.data.content?.user?.id,
+          role: loginResponse.data.content?.user?.userLevel?.name,
+          fullName: loginResponse.data.content?.user?.nama || loginResponse.data.content?.user?.fullName,
+          noIdentitas: loginResponse.data.content?.user?.npm || loginResponse.data.content?.user?.nip,
+          email: loginResponse.data.content?.user?.email || ''
+        }
 
         if (!token) {
           throw new Error('No token received from login')

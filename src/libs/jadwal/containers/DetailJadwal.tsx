@@ -1,12 +1,13 @@
-import { Card, CardContent, CircularProgress, Divider, Grid, Typography } from '@mui/material'
+import { Card, CardContent, CircularProgress, Grid, Skeleton, Typography } from '@mui/material'
 import { Fragment, memo, useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import { useAppDispatch } from 'src/utils/dispatch'
 import HeaderPage from 'src/components/shared/header-page'
-import { getJadwal } from 'src/stores/jadwal/action'
+import { getAllMeetings, getJadwal } from 'src/stores/jadwal/action'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
+import moment from 'moment'
 
-const DetailValue = memo(({ data }: { data: any }) => {
+const DetailValue = memo(({ data, isLoading }: { data: any; isLoading: boolean }) => {
   return (
     <Fragment>
       <Grid item xs={12}>
@@ -17,7 +18,11 @@ const DetailValue = memo(({ data }: { data: any }) => {
             </Typography>
           </Grid>
           <Grid item xs={8}>
-            <Typography variant='body1'>{data?.matakuliah?.nama ?? '-'}</Typography>
+            {isLoading ? (
+              <Skeleton variant='text' sx={{ width: '100%' }} />
+            ) : (
+              <Typography variant='body1'>{data?.matakuliah?.nama ?? '-'}</Typography>
+            )}
           </Grid>
         </Grid>
       </Grid>
@@ -30,9 +35,13 @@ const DetailValue = memo(({ data }: { data: any }) => {
             </Typography>
           </Grid>
           <Grid item xs={8}>
-            <Typography variant='body1'>
-              {data?.shift?.startTime ?? '-'} - {data?.shift?.endTime ?? '-'}
-            </Typography>
+            {isLoading ? (
+              <Skeleton variant='text' sx={{ width: '100%' }} />
+            ) : (
+              <Typography variant='body1'>
+                {data?.shift?.startTime ?? '-'} - {data?.shift?.endTime ?? '-'}
+              </Typography>
+            )}
           </Grid>
         </Grid>
       </Grid>
@@ -45,29 +54,114 @@ const DetailValue = memo(({ data }: { data: any }) => {
             </Typography>
           </Grid>
           <Grid item xs={8}>
-            <Typography variant='body1'>{data?.ruangan?.nama ?? '-'}</Typography>
+            {isLoading ? (
+              <Skeleton variant='text' sx={{ width: '100%' }} />
+            ) : (
+              <Typography variant='body1'>{data?.ruangan?.nama ?? '-'}</Typography>
+            )}
           </Grid>
         </Grid>
       </Grid>
 
-      {data?.dosen?.map((item: any, index: number) => (
-        <Grid item xs={12} marginBottom={'16px'} key={index}>
+      {isLoading
+        ? Array.from({ length: 2 }).map((_, idx: number) => (
+            <Grid item xs={12} marginBottom={'16px'} key={idx}>
+              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                    Dosen Pengampu {idx + 1}
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Skeleton variant='text' sx={{ width: '100%' }} key={idx} />
+                </Grid>
+              </Grid>
+            </Grid>
+          ))
+        : data?.dosen?.map((item: any, index: number) => (
+            <Grid item xs={12} marginBottom={'16px'} key={index}>
+              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                    Dosen Pengampu {index + 1}
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant='body1'>
+                    {item?.nama ?? '-'} ({item?.nip ?? '-'})
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+          ))}
+
+      {isLoading
+        ? Array.from({ length: 2 }).map((_, idx: number) => (
+            <Grid item xs={12} marginBottom={'16px'} key={idx}>
+              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                    Asisten Lab {idx + 1}
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Skeleton variant='text' sx={{ width: '100%' }} key={idx} />
+                </Grid>
+              </Grid>
+            </Grid>
+          ))
+        : data?.asisten?.map((item: any, index: number) => (
+            <Grid item xs={12} marginBottom={'16px'} key={index}>
+              <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+                <Grid item xs={4}>
+                  <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                    Asisten Lab {index + 1}
+                  </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography variant='body1'>
+                    {item?.Mahasiswa?.[0]?.nama ?? '-'} ({item?.Mahasiswa?.[0]?.npm ?? '-'})
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+          ))}
+    </Fragment>
+  )
+})
+
+const DetailPertemuan = memo(({ meetings, isLoading }: { meetings: any; isLoading: boolean }) => {
+  return isLoading
+    ? Array.from({ length: 12 }).map((_, idx: number) => (
+        <Grid item xs={6} key={idx} marginBottom={'16px'}>
           <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
             <Grid item xs={4}>
               <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                Dosen Pengampu {index + 1}
+                Pertemuan - {idx + 1}
               </Typography>
             </Grid>
             <Grid item xs={8}>
-              <Typography variant='body1'>
-                {item?.nama ?? '-'} ({item?.nip ?? '-'})
-              </Typography>
+              <Skeleton variant='text' sx={{ width: '100%' }} key={idx} />
             </Grid>
           </Grid>
         </Grid>
-      ))}
-    </Fragment>
-  )
+      ))
+    : meetings?.entries?.map((meeting: any, meetingIdx: number) => {
+        return (
+          <Grid item xs={6} key={meetingIdx} marginBottom={'16px'}>
+            <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
+              <Grid item xs={4}>
+                <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                  Pertemuan - {meetingIdx + 1}
+                </Typography>
+              </Grid>
+              <Grid item xs={8}>
+                <Typography variant='body1'>{moment(meeting?.tanggal).format('dddd, DD MMMM YYYY')}</Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+        )
+      })
 })
 
 export default function DetailJadwal() {
@@ -78,9 +172,11 @@ export default function DetailJadwal() {
   const [state, setState] = useState<{
     isLoading: boolean
     data: any
+    meetings: any
   }>({
     isLoading: false,
-    data: null
+    data: null,
+    meetings: null
   })
 
   const columns = [
@@ -119,16 +215,18 @@ export default function DetailJadwal() {
   const handleGetDetail = async () => {
     setState(prev => ({ ...prev, isLoading: true }))
 
-    // @ts-ignore
-    await dispatch(getJadwal({ id })).then((res: any) => {
-      if (res.meta.requestStatus !== 'fulfilled') {
-        setState(prev => ({ ...prev, isLoading: false }))
+    const [jadwal, meetings] = await Promise.all([
+      dispatch(getJadwal({ id })),
+      dispatch(getAllMeetings({ jadwalId: id, data: { params: { page: 1, rows: 10000 } } }))
+    ])
 
-        return
-      }
+    if (jadwal.meta.requestStatus !== 'fulfilled' || meetings.meta.requestStatus !== 'fulfilled') {
+      setState(prev => ({ ...prev, isLoading: false }))
 
-      setState(prev => ({ ...prev, isLoading: false, data: res.payload.content }))
-    })
+      return
+    }
+
+    setState(prev => ({ ...prev, isLoading: false, data: jadwal.payload.content, meetings: meetings.payload.content }))
   }
 
   useEffect(() => {
@@ -141,11 +239,15 @@ export default function DetailJadwal() {
 
       <CardContent sx={{ padding: '24px !important' }}>
         <Grid container spacing={4}>
-          <DetailValue data={state?.data} />
+          <DetailValue data={state?.data} isLoading={state?.isLoading} />
 
           <Grid item xs={12}>
-            <Divider />
+            <Typography variant='h5' sx={{ fontWeight: 600 }}>
+              List Pertemuan
+            </Typography>
           </Grid>
+
+          <DetailPertemuan meetings={state?.meetings} isLoading={state?.isLoading} />
 
           <Grid item xs={12}>
             <Typography variant='h5' sx={{ fontWeight: 600 }}>

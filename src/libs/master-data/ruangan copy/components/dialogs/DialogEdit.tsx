@@ -14,9 +14,7 @@ import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
 import { updateRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
 
 // Types
-import { TCreateRuanganLaboratorium } from 'src/stores/ruangan/types'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { IDialogProps } from 'src/utils/response.utils'
 
 // Components
 import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
@@ -38,7 +36,7 @@ const DialogEditRuanganLaboratorium = memo(({ open, onClose, values }: DialogEdi
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<any>([])
 
-  const { control, reset, handleSubmit } = useForm<TCreateRuanganLaboratorium>({
+  const { control, reset, handleSubmit } = useForm<any>({
     values: {
       nama: values?.nama || '',
       lokasi: values?.lokasi || ''
@@ -51,7 +49,7 @@ const DialogEditRuanganLaboratorium = memo(({ open, onClose, values }: DialogEdi
     dispatch(setIsRefresh())
   }, [reset, onClose, dispatch])
 
-  const onSubmit: SubmitHandler<TCreateRuanganLaboratorium> = useCallback(
+  const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
       setIsLoading(true)
       setErrors([])

@@ -1,10 +1,9 @@
 import { debounce, Switch } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { deleteShift, getAllShift, updateShift } from 'src/stores/master-data/shift/action'
+import { deleteShift, getAllShift } from 'src/stores/master-data/shift/action'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
-import { TShift } from 'src/stores/shift/types'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 
@@ -24,7 +23,7 @@ export const useShiftTable = () => {
 
   const debouncedSearchRef = useRef<any>(null)
 
-  const columns: GridColDef<TShift>[] = useMemo(
+  const columns: GridColDef[] = useMemo(
     () => [
       {
         flex: 0.25,

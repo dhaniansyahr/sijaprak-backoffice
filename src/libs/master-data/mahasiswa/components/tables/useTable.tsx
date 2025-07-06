@@ -1,32 +1,21 @@
-import { Box, IconButton } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { EyeIcon } from 'src/components/shared/icons'
 import { getAllMahasiswa } from 'src/stores/master-data/mahasiswa/action'
 
 // Memoized action buttons component to prevent re-renders
-const ActionButtons = ({ row, onDetail }: { row: any; onDetail: (row: any) => void }) => (
-  <Box sx={{ display: 'flex', gap: 0.5 }}>
-    <IconButton onClick={() => onDetail(row)} size='small'>
-      <EyeIcon />
-    </IconButton>
-  </Box>
-)
+// const ActionButtons = ({ row, onDetail }: { row: any; onDetail: (row: any) => void }) => (
+//   <Box sx={{ display: 'flex', gap: 0.5 }}>
+//     <IconButton onClick={() => onDetail(row)} size='small'>
+//       <EyeIcon />
+//     </IconButton>
+//   </Box>
+// )
 
 export const useTable = () => {
   const dispatch = useAppDispatch()
   const { isRefresh } = useAppSelector(state => state.mahasiswa)
-
-  // State
-  const [state, setState] = useState({
-    isAdd: false,
-    isEdit: false,
-    isDetail: false,
-    isChange: false,
-    rowSelected: null
-  })
 
   const [tableState, setTableState] = useState<ITableState>({
     page: 1,
@@ -37,11 +26,6 @@ export const useTable = () => {
   })
 
   const debouncedSearchRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Memoized action handlers
-  const handleDetail = useCallback((row: any) => {
-    setState(prev => ({ ...prev, isDetail: true, rowSelected: row }))
-  }, [])
 
   // Memoized columns definition
   const columns: GridColDef[] = useMemo(
@@ -77,17 +61,18 @@ export const useTable = () => {
         field: 'tahunMasuk',
         headerName: 'Angkatan',
         sortable: false
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'ACTION',
-        minWidth: 160,
-        sortable: false,
-        renderCell: params => <ActionButtons row={params.row} onDetail={handleDetail} />
       }
+
+      // {
+      //   flex: 0.25,
+      //   field: 'action',
+      //   headerName: 'ACTION',
+      //   minWidth: 160,
+      //   sortable: false,
+      //   renderCell: params => <ActionButtons row={params.row} onDetail={handleDetail} />
+      // }
     ],
-    [handleDetail]
+    []
   )
 
   const handleGetData = useCallback(
@@ -171,8 +156,6 @@ export const useTable = () => {
   }, [])
 
   return {
-    state,
-    setState,
     columns,
     tableState,
     setTableState,

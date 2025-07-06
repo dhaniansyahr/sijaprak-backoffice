@@ -2,13 +2,15 @@ import { Icon } from '@iconify/react'
 import { Box, Button, debounce, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DialogRef } from 'src/components/shared/dialog'
-import { getAllJadwalForPendaftaran } from 'src/stores/asisten-lab/action'
+import toast from 'react-hot-toast'
+import { getPendaftaranAsistenLab, penerimaanAsistenLab } from 'src/stores/asisten-lab/action'
+import { setIsRefresh } from 'src/stores/asisten-lab/slice'
 import { ITableState } from 'src/types'
-import { useAppDispatch } from 'src/utils/dispatch'
+import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 
-export const useTable = () => {
+export const useListPendaftaranAsisten = () => {
   const dispatch = useAppDispatch()
+  const { isRefresh } = useAppSelector(state => state.asistenLab)
 
   const [tableState, setTableState] = useState<ITableState>({
     page: 1,
@@ -17,10 +19,6 @@ export const useTable = () => {
     data: null,
     isLoading: false
   })
-
-  const dialogPendaftaranRef = useRef<DialogRef>(null)
-
-  const [row, setRow] = useState<any>(null)
 
   const debouncedSearchRef = useRef<any>(null)
 
@@ -51,42 +49,46 @@ export const useTable = () => {
                   <Icon icon='solar:danger-triangle-bold' width={20} color='#FCCF14' />
                 </Tooltip>
               )}
-              <span>{params?.row.matakuliah?.nama || '-'}</span>
+              <span>{params?.row.jadwal?.matakuliah?.nama || '-'}</span>
             </Box>
           )
         }
       },
       {
         flex: 0.25,
-        field: 'hari',
-        headerName: 'Hari',
+        field: 'namaMahasiswa',
+        headerName: 'Nama Mahasiswa',
+        sortable: false,
+        renderCell: params => {
+          return <span>{params?.row?.mahasiswa?.nama || '-'}</span>
+        }
+      },
+      {
+        flex: 0.25,
+        field: 'npmMahasiswa',
+        headerName: 'NPM Mahasiswa',
+        sortable: false,
+        renderCell: params => {
+          return <span>{params?.row?.mahasiswa?.npm || '-'}</span>
+        }
+      },
+      {
+        flex: 0.25,
+        field: 'nilaiTeori',
+        headerName: 'Nilai Teori',
         sortable: false
       },
       {
         flex: 0.25,
-        field: 'shiftTime',
-        headerName: 'Waktu Shift',
-        sortable: false,
-        renderCell: params => {
-          return <span>{`${params.row.shift.startTime} - ${params.row.shift.endTime}`}</span>
-        }
+        field: 'nilaiPraktikum',
+        headerName: 'Nilai Praktikum',
+        sortable: false
       },
       {
         flex: 0.25,
-        field: 'dosen',
-        headerName: 'Dosen Pengampu',
-        sortable: false,
-        renderCell: params => {
-          return (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {params.row.dosen?.map((item: any, index: number) => (
-                <span key={index}>
-                  {item?.nama} ({item?.nip})
-                </span>
-              ))}
-            </Box>
-          )
-        }
+        field: 'nilaiAkhir',
+        headerName: 'Nilai Akhir',
+        sortable: false
       },
       {
         flex: 0.25,
@@ -96,16 +98,25 @@ export const useTable = () => {
         sortable: false,
         renderCell: (params: any) => {
           return (
-            <Button
-              variant='contained'
-              size='small'
-              onClick={() => {
-                setRow(params?.row)
-                dialogPendaftaranRef.current?.open()
-              }}
-            >
-              Daftar
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                variant='outlined'
+                color='error'
+                size='small'
+                onClick={() =>
+                  handlePenerimaanAsisten(params?.row?.id, 'DITOLAK', 'Ditolak karena tidak memenuhi kriteria')
+                }
+              >
+                Tolak
+              </Button>
+              <Button
+                variant='contained'
+                size='small'
+                onClick={() => handlePenerimaanAsisten(params?.row?.id, 'DISETUJUI')}
+              >
+                Terima
+              </Button>
+            </Box>
           )
         }
       }
@@ -132,7 +143,7 @@ export const useTable = () => {
     }
 
     // @ts-ignore
-    await dispatch(getAllJadwalForPendaftaran({ data: body })).then((res: any) => {
+    await dispatch(getPendaftaranAsistenLab({ data: body })).then((res: any) => {
       if (
         !(res.payload.content?.entries ?? []).some((obj: any) =>
           (tableState.data?.entries ?? []).some((newObj: any) => obj.id === newObj.id)
@@ -153,6 +164,32 @@ export const useTable = () => {
     setTableState(prev => ({ ...prev, isLoading: false }))
   }
 
+  const handlePenerimaanAsisten = async (id: string, action: 'DISETUJUI' | 'DITOLAK', ket?: string) => {
+    toast.loading('Loading...')
+
+    const body = {
+      status: action,
+      keterangan: ket
+    }
+
+    // @ts-ignore
+    await dispatch(penerimaanAsistenLab({ data: body, id })).then(res => {
+      if (res?.meta?.requestStatus !== 'fulfilled') {
+        const errors = res?.payload?.response?.data
+
+        toast.dismiss()
+        toast.error(errors?.errors?.[0]?.message || errors?.message)
+
+        return
+      }
+
+      toast.dismiss()
+      toast.success(res?.payload?.message)
+
+      dispatch(setIsRefresh())
+    })
+  }
+
   const handleSearch = useMemo(() => {
     const debouncedSearch = debounce((query: string) => {
       setTableState(prev => ({ ...prev, search: query }))
@@ -167,7 +204,7 @@ export const useTable = () => {
   useEffect(() => {
     setTableState(prev => ({ ...prev, page: 1 }))
     handleGetData(false)
-  }, [tableState.search, tableState.pageSize])
+  }, [tableState.search, tableState.pageSize, isRefresh])
 
   useEffect(() => {
     if (tableState.page !== 1) {
@@ -179,8 +216,6 @@ export const useTable = () => {
     columns,
     tableState,
     setTableState,
-    handleSearch,
-    dialogPendaftaranRef,
-    row
+    handleSearch
   }
 }

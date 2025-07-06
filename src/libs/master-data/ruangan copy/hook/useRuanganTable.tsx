@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { deleteRuanganLaboratorium, getAllRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
 import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
-import { TRuanganLaboratorium } from 'src/stores/ruangan/types'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 import { EyeIcon, EditIcon, ChangeIcon } from 'src/components/shared/icons'
@@ -16,10 +15,10 @@ const ActionButtons = ({
   onEdit,
   onChange
 }: {
-  row: TRuanganLaboratorium
-  onDetail: (row: TRuanganLaboratorium) => void
-  onEdit: (row: TRuanganLaboratorium) => void
-  onChange: (row: TRuanganLaboratorium) => void
+  row: any
+  onDetail: (row: any) => void
+  onEdit: (row: any) => void
+  onChange: (row: any) => void
 }) => (
   <Box sx={{ display: 'flex', gap: 0.5 }}>
     <IconButton onClick={() => onDetail(row)} size='small'>
@@ -44,7 +43,7 @@ export const useRuanganTable = () => {
     isEdit: false,
     isDetail: false,
     isChange: false,
-    rowSelected: null as TRuanganLaboratorium | null
+    rowSelected: null
   })
 
   const [tableState, setTableState] = useState<ITableState>({
@@ -58,15 +57,15 @@ export const useRuanganTable = () => {
   const debouncedSearchRef = useRef<NodeJS.Timeout | null>(null)
 
   // Memoized action handlers
-  const handleDetail = useCallback((row: TRuanganLaboratorium) => {
+  const handleDetail = useCallback((row: any) => {
     setState(prev => ({ ...prev, isDetail: true, rowSelected: row }))
   }, [])
 
-  const handleEdit = useCallback((row: TRuanganLaboratorium) => {
+  const handleEdit = useCallback((row: any) => {
     setState(prev => ({ ...prev, isEdit: true, rowSelected: row }))
   }, [])
 
-  const handleChange = useCallback((row: TRuanganLaboratorium) => {
+  const handleChange = useCallback((row: any) => {
     setState(prev => ({ ...prev, isChange: true, rowSelected: row }))
   }, [])
 
@@ -102,7 +101,7 @@ export const useRuanganTable = () => {
   )
 
   // Memoized columns definition
-  const columns: GridColDef<TRuanganLaboratorium>[] = useMemo(
+  const columns: GridColDef<any>[] = useMemo(
     () => [
       {
         flex: 0.25,

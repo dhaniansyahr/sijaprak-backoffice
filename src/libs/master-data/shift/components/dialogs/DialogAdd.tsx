@@ -7,7 +7,6 @@ import Dialog from '@mui/material/Dialog'
 import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid'
 import { useForm } from 'react-hook-form'
-import { TCreateShift } from 'src/stores/shift/types'
 import moment from 'moment'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
@@ -25,7 +24,7 @@ const Transition = TransitionDialog
 const DialogAdd = ({ open, onClose }: IDialogProps) => {
   const dispatch = useAppDispatch()
 
-  const { control, reset, handleSubmit } = useForm<TCreateShift>({
+  const { control, reset, handleSubmit } = useForm<any>({
     defaultValues: {
       startTime: null,
       endTime: null

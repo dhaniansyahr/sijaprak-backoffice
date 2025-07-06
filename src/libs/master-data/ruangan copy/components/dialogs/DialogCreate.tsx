@@ -10,9 +10,7 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
 // Services & Types
-import { TCreateRuanganLaboratorium } from 'src/stores/ruangan/types'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { IDialogProps } from 'src/utils/response.utils'
 
 // Redux Imports
 import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
@@ -37,7 +35,7 @@ const DialogCreateRuanganLaboratorium = memo(({ open, onClose }: DialogCreatePro
   const [isLoading, setIsLoading] = useState(false)
   const [errorsResponse, setErrorsResponse] = useState<any>([])
 
-  const { control, reset, handleSubmit, setError } = useForm<TCreateRuanganLaboratorium>({
+  const { control, reset, handleSubmit, setError } = useForm<any>({
     defaultValues: {
       nama: '',
       lokasi: ''
@@ -50,7 +48,7 @@ const DialogCreateRuanganLaboratorium = memo(({ open, onClose }: DialogCreatePro
     dispatch(setIsRefresh())
   }, [reset, onClose, dispatch])
 
-  const onSubmit: SubmitHandler<TCreateRuanganLaboratorium> = useCallback(
+  const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
       setIsLoading(true)
       setErrorsResponse([])
