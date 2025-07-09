@@ -77,13 +77,13 @@ const TableRuangan = memo(() => {
       </Card>
 
       <Suspense fallback={<DialogLoader />}>
-        <DialogCreateRuanganLaboratorium ref={addRef} />
+        <DialogCreateRuanganLaboratorium dialogRef={addRef} />
 
-        <DialogEditRuanganLaboratorium ref={editRef} values={row} />
+        <DialogEditRuanganLaboratorium dialogRef={editRef} values={row} />
 
-        <DialogDetailRuanganLaboratorium ref={detailRef} values={row} />
+        <DialogDetailRuanganLaboratorium dialogRef={detailRef} values={row} />
 
-        <DialogAssignKepalaLab ref={changeRef} values={row} />
+        <DialogAssignKepalaLab dialogRef={changeRef} values={row} />
       </Suspense>
     </>
   )

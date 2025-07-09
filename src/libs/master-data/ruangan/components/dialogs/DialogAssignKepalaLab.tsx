@@ -17,11 +17,11 @@ import { Box, Button, CircularProgress, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 interface IDialogAssignKepalaLab {
-  ref: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<DialogRef>
   values: any
 }
 
-const DialogAssignKepalaLab = memo(({ ref, values }: IDialogAssignKepalaLab) => {
+const DialogAssignKepalaLab = memo(({ dialogRef, values }: IDialogAssignKepalaLab) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -38,9 +38,9 @@ const DialogAssignKepalaLab = memo(({ ref, values }: IDialogAssignKepalaLab) => 
     setIsLoading(false)
     reset()
 
-    ref.current?.close()
+    dialogRef.current?.close()
     dispatch(setIsRefresh())
-  }, [reset, ref, dispatch])
+  }, [reset, dialogRef, dispatch])
 
   const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
@@ -71,11 +71,11 @@ const DialogAssignKepalaLab = memo(({ ref, values }: IDialogAssignKepalaLab) => 
 
   return (
     <Dialog
-      ref={ref}
-      isOpen={ref.current?.isOpen ?? false}
+      ref={dialogRef}
+      isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          ref.current?.close()
+          dialogRef.current?.close()
         }
       }}
       title='Pergantian Kepala Laboratorium'

@@ -64,7 +64,7 @@ const TableShift = () => {
         />
       </CardContent>
 
-      <DialogAdd ref={addRef} />
+      <DialogAdd dialogRef={addRef} />
     </Card>
   )
 }

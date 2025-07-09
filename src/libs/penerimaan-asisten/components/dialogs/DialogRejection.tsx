@@ -12,7 +12,6 @@ import Typography from '@mui/material/Typography'
 import { ReactElement, Ref, forwardRef, useState } from 'react'
 import 'react-datepicker/dist/react-datepicker.css'
 import { useForm } from 'react-hook-form'
-import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 const Transition = forwardRef(function Transition(
   props: FadeProps & { children?: ReactElement<any, any> },

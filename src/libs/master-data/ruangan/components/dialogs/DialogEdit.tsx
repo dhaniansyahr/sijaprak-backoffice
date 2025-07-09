@@ -19,11 +19,11 @@ import { Box, Button, CircularProgress, Grid } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 
 interface DialogEditProps {
-  ref: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<DialogRef>
   values: any
 }
 
-const DialogEditRuanganLaboratorium = memo(({ ref, values }: DialogEditProps) => {
+const DialogEditRuanganLaboratorium = memo(({ dialogRef, values }: DialogEditProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -39,9 +39,9 @@ const DialogEditRuanganLaboratorium = memo(({ ref, values }: DialogEditProps) =>
   const handleClose = useCallback(() => {
     reset()
 
-    ref.current?.close()
+    dialogRef.current?.close()
     dispatch(setIsRefresh())
-  }, [reset, ref, dispatch])
+  }, [reset, dialogRef, dispatch])
 
   const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
@@ -73,10 +73,10 @@ const DialogEditRuanganLaboratorium = memo(({ ref, values }: DialogEditProps) =>
   return (
     <Dialog
       fullWidth
-      isOpen={ref.current?.isOpen ?? false}
+      isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          ref.current?.close()
+          dialogRef.current?.close()
         }
       }}
       maxWidth='md'

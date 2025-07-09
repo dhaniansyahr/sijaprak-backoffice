@@ -19,10 +19,10 @@ import { Box, Button, CircularProgress, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 interface DialogCreateProps {
-  ref: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<DialogRef>
 }
 
-const DialogCreateRuanganLaboratorium = memo(({ ref }: DialogCreateProps) => {
+const DialogCreateRuanganLaboratorium = memo(({ dialogRef }: DialogCreateProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -38,9 +38,9 @@ const DialogCreateRuanganLaboratorium = memo(({ ref }: DialogCreateProps) => {
   const handleClose = useCallback(() => {
     reset()
 
-    ref.current?.close()
+    dialogRef.current?.close()
     dispatch(setIsRefresh())
-  }, [reset, ref, dispatch])
+  }, [reset, dialogRef, dispatch])
 
   const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
@@ -79,10 +79,10 @@ const DialogCreateRuanganLaboratorium = memo(({ ref }: DialogCreateProps) => {
   return (
     <Dialog
       fullWidth
-      isOpen={ref.current?.isOpen ?? false}
+      isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          ref.current?.close()
+          dialogRef.current?.close()
         }
       }}
       title='Tambah Ruangan Laboratorium'

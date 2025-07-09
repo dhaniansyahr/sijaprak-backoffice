@@ -8,13 +8,23 @@ import { useTable } from '../../hooks/useTable'
 import DataTable from 'src/components/shared/table'
 import DialogAssignAsistenLab from '../dialogs/DialogAssignAsistenLab'
 import Can from 'src/layouts/components/acl/Can'
+import DialogEdit from '../dialogs/DialogEdit'
 
 const TableJadwal = () => {
   const router = useRouter()
 
   // Hooks Table
-  const { columns, tableState, handleSearch, setTableState, handleGenerate, isGenerating, assignAsistenLabRef, row } =
-    useTable()
+  const {
+    columns,
+    tableState,
+    handleSearch,
+    setTableState,
+    handleGenerate,
+    isGenerating,
+    assignAsistenLabRef,
+    row,
+    editRef
+  } = useTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
@@ -83,6 +93,8 @@ const TableJadwal = () => {
       </CardContent>
 
       <DialogAssignAsistenLab dialogRef={assignAsistenLabRef} id={row?.id} />
+
+      <DialogEdit dialogRef={editRef} row={row} />
     </Card>
   )
 }

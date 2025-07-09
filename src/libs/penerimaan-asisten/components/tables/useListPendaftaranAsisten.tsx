@@ -1,9 +1,10 @@
 import { useAbility } from '@casl/react'
 import { Icon } from '@iconify/react'
-import { Box, Button, debounce, Tooltip } from '@mui/material'
+import { Box, Button, Chip, debounce, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { getPendaftaranAsistenLab, penerimaanAsistenLab } from 'src/stores/asisten-lab/action'
 import { setIsRefresh } from 'src/stores/asisten-lab/slice'
@@ -97,6 +98,18 @@ export const useListPendaftaranAsisten = () => {
         field: 'nilaiAkhir',
         headerName: 'Nilai Akhir',
         sortable: false
+      },
+      {
+        flex: 0.25,
+        field: 'status',
+        headerName: 'Status',
+        sortable: false,
+        renderCell: params => {
+          const color =
+            params?.row?.status === 'DISETUJUI' ? 'primary' : params?.row?.status === 'DITOLAK' ? 'error' : 'secondary'
+
+          return <Chip label={params?.row?.status} variant='outlined' color={color} />
+        }
       }
     ]
   }, [])
@@ -119,6 +132,7 @@ export const useListPendaftaranAsisten = () => {
                 onClick={() =>
                   handlePenerimaanAsisten(params?.row?.id, 'DITOLAK', 'Ditolak karena tidak memenuhi kriteria')
                 }
+                disabled={params?.row?.status !== 'PENDING'}
               >
                 Tolak
               </Button>
@@ -126,6 +140,7 @@ export const useListPendaftaranAsisten = () => {
                 variant='contained'
                 size='small'
                 onClick={() => handlePenerimaanAsisten(params?.row?.id, 'DISETUJUI')}
+                disabled={params?.row?.status !== 'PENDING'}
               >
                 Terima
               </Button>

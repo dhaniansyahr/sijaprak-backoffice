@@ -35,6 +35,7 @@ export const useTable = () => {
 
   const debouncedSearchRef = useRef<any>(null)
   const assignAsistenLabRef = useRef<DialogRef>(null)
+  const editRef = useRef<DialogRef>(null)
 
   const isActionAllowed = useMemo(() => {
     return (
@@ -148,7 +149,6 @@ export const useTable = () => {
             onOpen={() => setIsMenuOpen(params.row.id)}
             onClose={() => setIsMenuOpen('')}
           >
-            {/* Only show "Tambahkan Asisten Lab" if user has create permission on JADWAL */}
             <Can I='assign_asisten' a='JADWAL'>
               <MenuItem
                 sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
@@ -163,13 +163,13 @@ export const useTable = () => {
               </MenuItem>
             </Can>
 
-            {/* Only show "Update Jadwal" if user has update permission on JADWAL */}
             <Can I='update' a='JADWAL'>
               <MenuItem
                 sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
                 onClick={() => {
                   setIsMenuOpen('')
-                  router.push(`/jadwal/${params?.row?.id}/meetings`)
+                  setRow(params?.row)
+                  editRef.current?.open()
                 }}
               >
                 <Icon icon='mdi:edit' />
@@ -177,7 +177,6 @@ export const useTable = () => {
               </MenuItem>
             </Can>
 
-            {/* Only show "Detail Jadwal" if user has read permission on JADWAL */}
             <Can I='read' a='JADWAL'>
               <MenuItem
                 sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
@@ -191,7 +190,6 @@ export const useTable = () => {
               </MenuItem>
             </Can>
 
-            {/* Only show "Detail Absensi" if user has read permission on ABSENSI */}
             <Can I='read' a='ABSENSI'>
               <MenuItem
                 sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
@@ -305,6 +303,7 @@ export const useTable = () => {
     setTableState,
     handleSearch,
     assignAsistenLabRef,
-    row
+    row,
+    editRef
   }
 }

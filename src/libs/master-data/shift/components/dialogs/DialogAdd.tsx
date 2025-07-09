@@ -9,7 +9,7 @@ import moment from 'moment'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
 import toast from 'react-hot-toast'
-import { handleMapErrors, IDialogProps } from 'src/utils/response.utils'
+import { handleMapErrors } from 'src/utils/response.utils'
 import FormDatePicker from 'src/components/shared/input/date'
 import { Button, CircularProgress, Typography } from '@mui/material'
 import { createShift } from 'src/stores/master-data/shift/action'
@@ -17,10 +17,10 @@ import Dialog, { DialogRef } from 'src/components/shared/dialog'
 import LoadingButton from '@mui/lab/LoadingButton'
 
 interface DialogAddProps {
-  ref: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<DialogRef>
 }
 
-const DialogAdd = ({ ref }: DialogAddProps) => {
+const DialogAdd = ({ dialogRef }: DialogAddProps) => {
   const dispatch = useAppDispatch()
 
   const { control, reset, handleSubmit, setError } = useForm<any>({
@@ -36,11 +36,11 @@ const DialogAdd = ({ ref }: DialogAddProps) => {
   const handleClose = useCallback(() => {
     setIsLoading(false)
     reset()
-    ref.current?.close()
+    dialogRef.current?.close()
 
     // @ts-ignore
     dispatch(setIsRefresh())
-  }, [reset, ref, dispatch])
+  }, [reset, dialogRef, dispatch])
 
   const onSubmit = handleSubmit(async value => {
     setIsLoading(true)
@@ -76,10 +76,10 @@ const DialogAdd = ({ ref }: DialogAddProps) => {
   return (
     <Dialog
       fullWidth
-      isOpen={ref.current?.isOpen ?? false}
+      isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          ref.current?.close()
+          dialogRef.current?.close()
         }
       }}
       maxWidth='md'

@@ -41,11 +41,11 @@ const columns: GridColDef[] = [
 ]
 
 interface DialogDetailProps {
-  ref: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<DialogRef>
   values: any
 }
 
-const DialogDetailRuanganLaboratorium = memo(({ ref, values }: DialogDetailProps) => {
+const DialogDetailRuanganLaboratorium = memo(({ dialogRef, values }: DialogDetailProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -83,10 +83,10 @@ const DialogDetailRuanganLaboratorium = memo(({ ref, values }: DialogDetailProps
   return (
     <Dialog
       fullWidth
-      isOpen={ref.current?.isOpen ?? false}
+      isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
-          ref.current?.close()
+          dialogRef.current?.close()
         }
       }}
       maxWidth='md'

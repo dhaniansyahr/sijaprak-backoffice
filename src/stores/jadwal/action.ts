@@ -44,11 +44,11 @@ export const createJadwal = createAsyncThunk('create/jadwal', async ({ data }: {
   }
 })
 
-export const updateJadwal = createAsyncThunk(
-  'update/jadwal',
+export const updateMeeting = createAsyncThunk(
+  'update/meeting',
   async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/jadwal/${id}`, data)
+      const response = await api.put(`/meeting/${id}`, data)
 
       return response.data
     } catch (error) {
