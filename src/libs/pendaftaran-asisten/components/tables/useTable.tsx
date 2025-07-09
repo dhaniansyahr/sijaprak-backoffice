@@ -1,14 +1,17 @@
+import { useAbility } from '@casl/react'
 import { Icon } from '@iconify/react'
 import { Box, Button, debounce, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DialogRef } from 'src/components/shared/dialog'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { getAllJadwalForPendaftaran } from 'src/stores/asisten-lab/action'
 import { ITableState } from 'src/types'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 export const useTable = () => {
   const dispatch = useAppDispatch()
+  const ability = useAbility(AbilityContext)
 
   const [tableState, setTableState] = useState<ITableState>({
     page: 1,
@@ -23,6 +26,10 @@ export const useTable = () => {
   const [row, setRow] = useState<any>(null)
 
   const debouncedSearchRef = useRef<any>(null)
+
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('create', 'PENDAFTARAN_ASISTEN_LAB')
+  }, [ability])
 
   const columns: GridColDef[] = useMemo(() => {
     return [
@@ -87,15 +94,20 @@ export const useTable = () => {
             </Box>
           )
         }
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'Aksi',
-        minWidth: 160,
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
+      }
+    ]
+  }, [])
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'action',
+      headerName: 'Aksi',
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: any) => {
+        return (
+          <Can I={'create'} a={'PENDAFTARAN_ASISTEN_LAB'}>
             <Button
               variant='contained'
               size='small'
@@ -106,11 +118,11 @@ export const useTable = () => {
             >
               Daftar
             </Button>
-          )
-        }
+          </Can>
+        )
       }
-    ]
-  }, [])
+    })
+  }
 
   const handleGetData = async (isPagination = false) => {
     setTableState(prev => ({ ...prev, isLoading: true }))

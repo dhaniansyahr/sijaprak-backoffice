@@ -5,6 +5,7 @@ import { useShiftTable } from '../../hooks/useShitTable'
 import HeaderPage from 'src/components/shared/header-page'
 import DialogAdd from '../dialogs/DialogAdd'
 import DataTable from 'src/components/shared/table'
+import Can from 'src/layouts/components/acl/Can'
 
 const TableShift = () => {
   // Hooks Table
@@ -32,14 +33,16 @@ const TableShift = () => {
         }
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={() => setIsAddDialogOpen(true)}
-              startIcon={<Icon icon='ic:baseline-add' />}
-            >
-              Tambah Shift
-            </Button>
+            <Can I={'create'} a={'SHIFT'}>
+              <Button
+                variant='contained'
+                color='primary'
+                onClick={() => setIsAddDialogOpen(true)}
+                startIcon={<Icon icon='ic:baseline-add' />}
+              >
+                Tambah Shift
+              </Button>
+            </Can>
           </Box>
         }
         sx={{

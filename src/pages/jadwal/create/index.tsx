@@ -1,5 +1,12 @@
 import CreateJadwal from 'src/libs/jadwal/containers/CreateJadwal'
 
-export default function index() {
+const CreateJadwalPage = () => {
   return <CreateJadwal />
 }
+
+CreateJadwalPage.acl = {
+  subject: 'JADWAL',
+  action: 'create'
+}
+
+export default CreateJadwalPage

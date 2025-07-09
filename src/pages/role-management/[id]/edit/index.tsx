@@ -1,5 +1,12 @@
 import EditAkses from 'src/libs/role-management/containers/EditAkses'
 
-export default function index() {
+const EditAksesPage = () => {
   return <EditAkses />
 }
+
+EditAksesPage.acl = {
+  subject: 'ROLE_MANAGEMENT',
+  action: 'update'
+}
+
+export default EditAksesPage

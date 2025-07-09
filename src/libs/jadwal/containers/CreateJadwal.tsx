@@ -12,6 +12,7 @@ import { useAppDispatch } from 'src/utils/dispatch'
 import { createJadwal, getAvailableJadwal } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import DataTable from 'src/components/shared/table'
+import Can from 'src/layouts/components/acl/Can'
 
 export const hariOptions = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU']
 
@@ -248,18 +249,20 @@ export default function CreateJadwal() {
         title='Tambah Jadwal Praktikum Baru'
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Button variant='outlined' color='secondary' onClick={() => router.back()}>
-              Cancel
-            </Button>
+            <Can I={'read'} a={'JADWAL'}>
+              <Button variant='outlined' color='secondary' onClick={() => router.back()}>
+                Cancel
+              </Button>
 
-            <LoadingButton
-              variant='contained'
-              color='primary'
-              onClick={() => setConfirmationDialog(prev => ({ ...prev, open: true }))}
-              loadingIndicator={<CircularProgress size={20} />}
-            >
-              Submit
-            </LoadingButton>
+              <LoadingButton
+                variant='contained'
+                color='primary'
+                onClick={() => setConfirmationDialog(prev => ({ ...prev, open: true }))}
+                loadingIndicator={<CircularProgress size={20} />}
+              >
+                Submit
+              </LoadingButton>
+            </Can>
           </Box>
         }
       />

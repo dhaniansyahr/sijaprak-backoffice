@@ -1,3 +1,12 @@
 import AbsensiContainer from 'src/libs/jadwal/containers/Absensi'
 
-export default AbsensiContainer
+const AbsensiPage = () => {
+  return <AbsensiContainer />
+}
+
+AbsensiPage.acl = {
+  subject: 'ABSENSI',
+  action: 'read'
+}
+
+export default AbsensiPage

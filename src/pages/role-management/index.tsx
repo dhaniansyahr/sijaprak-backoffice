@@ -1,3 +1,12 @@
 import RoleContainer from 'src/libs/role-management/containers'
 
-export default RoleContainer
+const RoleManagementPage = () => {
+  return <RoleContainer />
+}
+
+RoleManagementPage.acl = {
+  subject: 'ROLE_MANAGEMENT',
+  action: 'read'
+}
+
+export default RoleManagementPage

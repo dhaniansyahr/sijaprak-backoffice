@@ -11,7 +11,7 @@ import {
   TextField
 } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { NextRouter, useRouter } from 'next/router'
 import { getAllRole } from 'src/stores/role/action'
@@ -19,10 +19,12 @@ import HeaderPage from 'src/components/shared/header-page'
 import DataTable from 'src/components/shared/table'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { enumToCapitalize } from 'src/utils/string.format'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 
 export default function TableRoleManagement() {
   const router: NextRouter = useRouter()
   const dispatch = useAppDispatch()
+  const ability = useContext(AbilityContext)
 
   const [data, setData] = useState<any>(null)
 
@@ -31,6 +33,10 @@ export default function TableRoleManagement() {
   const [pageSize, setPageSize] = useState<number>(10)
   const [search, setSearch] = useState<any>('')
   const [isMenuOpen, setIsMenuOpen] = useState<any>('')
+
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('create', 'ROLE_MANAGEMENT') || ability?.can('update', 'ROLE_MANAGEMENT')
+  }, [ability])
 
   const columns: GridColDef[] = useMemo(
     () => [
@@ -53,56 +59,64 @@ export default function TableRoleManagement() {
         renderCell: (params: any) => {
           return <span>{enumToCapitalize(params?.row?.name || '-')}</span>
         }
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'Aksi',
-        minWidth: 160,
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
-            <div>
-              <IconButton id={params?.row?.id} onClick={() => setIsMenuOpen(params?.row?.id)}>
-                <Icon icon='mage:dots' />
-              </IconButton>
-              <Menu
-                id={params?.row?.id}
-                anchorEl={document.getElementById(params?.row?.id)}
-                open={isMenuOpen === params?.row?.id}
-                onClose={() => setIsMenuOpen('')}
-                MenuListProps={{
-                  'aria-labelledby': params?.row?.id
-                }}
-              >
+      }
+    ],
+    []
+  )
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'action',
+      headerName: 'Aksi',
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: any) => {
+        return (
+          <div>
+            <IconButton id={params?.row?.id} onClick={() => setIsMenuOpen(params?.row?.id)}>
+              <Icon icon='mage:dots' />
+            </IconButton>
+
+            <Menu
+              id={params?.row?.id}
+              anchorEl={document.getElementById(params?.row?.id)}
+              open={isMenuOpen === params?.row?.id}
+              onClose={() => setIsMenuOpen('')}
+              MenuListProps={{
+                'aria-labelledby': params?.row?.id
+              }}
+            >
+              <Can I={'update'} a={'ROLE_MANAGEMENT'}>
                 <MenuItem
                   sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
                   onClick={() => router.push(`/role-management/${params?.row?.id}/edit`)}
                 >
                   <span>Edit Role</span>
                 </MenuItem>
+              </Can>
 
+              <Can I={'create'} a={'ROLE_MANAGEMENT'}>
                 <MenuItem
                   sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
                   onClick={() => router.push(`/role-management/${params?.row?.id}/duplicate`)}
                 >
                   <span>Duplicate Role</span>
                 </MenuItem>
+              </Can>
 
-                {/* <MenuItem
-                  sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-                  onClick={() => router.push(`/role-management/${params?.row?.id}/delete`)}
-                >
-                  <span>Delete</span>
-                </MenuItem> */}
-              </Menu>
-            </div>
-          )
-        }
+              {/* <MenuItem
+                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                onClick={() => router.push(`/role-management/${params?.row?.id}/delete`)}
+              >
+                <span>Delete</span>
+              </MenuItem> */}
+            </Menu>
+          </div>
+        )
       }
-    ],
-    [isMenuOpen, setIsMenuOpen]
-  )
+    })
+  }
 
   const handleGetAll = useCallback(
     async (isPagination = false) => {
@@ -188,14 +202,16 @@ export default function TableRoleManagement() {
         }
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={() => router.push('/role-management/create')}
-              startIcon={<Icon icon='ic:baseline-add' />}
-            >
-              Tambah Role
-            </Button>
+            <Can I={'create'} a={'ROLE_MANAGEMENT'}>
+              <Button
+                variant='contained'
+                color='primary'
+                onClick={() => router.push('/role-management/create')}
+                startIcon={<Icon icon='ic:baseline-add' />}
+              >
+                Tambah Role
+              </Button>
+            </Can>
           </Box>
         }
         sx={{

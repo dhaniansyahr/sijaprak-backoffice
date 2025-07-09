@@ -1,3 +1,12 @@
 import CreateAkses from 'src/libs/role-management/containers/CreateAkses'
 
-export default CreateAkses
+const CreateAksesPage = () => {
+  return <CreateAkses />
+}
+
+CreateAksesPage.acl = {
+  subject: 'ROLE_MANAGEMENT',
+  action: 'create'
+}
+
+export default CreateAksesPage

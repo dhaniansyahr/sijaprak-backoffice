@@ -7,6 +7,7 @@ import HeaderPage from 'src/components/shared/header-page'
 import { useRuanganTable } from '../../hook/useRuanganTable'
 import DataTable from 'src/components/shared/table'
 import { AddIcon } from 'src/components/shared/icons'
+import Can from 'src/layouts/components/acl/Can'
 
 // Lazy load dialogs to reduce initial bundle size
 const DialogCreateRuanganLaboratorium = lazy(() => import('../dialogs/DialogCreate'))
@@ -47,15 +48,17 @@ const TableRuangan = memo(() => {
             </Box>
           }
           action={
-            <Button
-              variant='contained'
-              color='primary'
-              sx={{ mb: 2 }}
-              onClick={() => setState(prev => ({ ...prev, isAdd: true }))}
-              startIcon={<AddIcon />}
-            >
-              Tambah Laboratorium
-            </Button>
+            <Can I={'create'} a={'RUANGAN'}>
+              <Button
+                variant='contained'
+                color='primary'
+                sx={{ mb: 2 }}
+                onClick={() => setState(prev => ({ ...prev, isAdd: true }))}
+                startIcon={<AddIcon />}
+              >
+                Tambah Laboratorium
+              </Button>
+            </Can>
           }
           sx={{
             display: 'flex',

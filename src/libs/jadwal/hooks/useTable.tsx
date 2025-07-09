@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react'
 import { Box, debounce, MenuItem, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import ActionTable from 'src/components/shared/action-table'
 import { DialogRef } from 'src/components/shared/dialog'
@@ -10,10 +10,13 @@ import { generateJawdal, getAllJadwal } from 'src/stores/jadwal/action'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
+import Can from 'src/layouts/components/acl/Can'
+import { AbilityContext } from 'src/layouts/components/acl/Can'
 
 export const useTable = () => {
   const router = useRouter()
   const dispatch = useAppDispatch()
+  const ability = useContext(AbilityContext)
 
   const { isRefresh } = useAppSelector(state => state.jadwal)
 
@@ -32,6 +35,16 @@ export const useTable = () => {
 
   const debouncedSearchRef = useRef<any>(null)
   const assignAsistenLabRef = useRef<DialogRef>(null)
+
+  const isActionAllowed = useMemo(() => {
+    return (
+      ability?.can('read', 'JADWAL') ||
+      ability?.can('read', 'ABSENSI') ||
+      ability?.can('assign_asisten', 'JADWAL') ||
+      ability?.can('update', 'JADWAL') ||
+      ability?.can('read', 'JADWAL')
+    )
+  }, [ability])
 
   const columns: GridColDef[] = [
     {
@@ -118,13 +131,16 @@ export const useTable = () => {
           </Box>
         )
       }
-    },
-    {
+    }
+  ]
+
+  if (isActionAllowed) {
+    columns.push({
       flex: 0.25,
       field: 'action',
       headerName: 'Aksi',
       sortable: false,
-      renderCell: params => {
+      renderCell: (params: any) => {
         return (
           <ActionTable
             id={params?.row?.id}
@@ -132,55 +148,67 @@ export const useTable = () => {
             onOpen={() => setIsMenuOpen(params.row.id)}
             onClose={() => setIsMenuOpen('')}
           >
-            <MenuItem
-              sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-              onClick={() => {
-                setIsMenuOpen('')
-                setRow(params?.row)
-                assignAsistenLabRef?.current?.open()
-              }}
-            >
-              <Icon icon='solar:user-id-broken' />
-              <span>Tambahkan Asisten Lab</span>
-            </MenuItem>
+            {/* Only show "Tambahkan Asisten Lab" if user has create permission on JADWAL */}
+            <Can I='assign_asisten' a='JADWAL'>
+              <MenuItem
+                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                onClick={() => {
+                  setIsMenuOpen('')
+                  setRow(params?.row)
+                  assignAsistenLabRef?.current?.open()
+                }}
+              >
+                <Icon icon='solar:user-id-broken' />
+                <span>Tambahkan Asisten Lab</span>
+              </MenuItem>
+            </Can>
 
-            <MenuItem
-              sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-              onClick={() => {
-                setIsMenuOpen('')
-                router.push(`/jadwal/${params?.row?.id}/meetings`)
-              }}
-            >
-              <Icon icon='mdi:edit' />
-              <span>Update Jadwal</span>
-            </MenuItem>
+            {/* Only show "Update Jadwal" if user has update permission on JADWAL */}
+            <Can I='update' a='JADWAL'>
+              <MenuItem
+                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                onClick={() => {
+                  setIsMenuOpen('')
+                  router.push(`/jadwal/${params?.row?.id}/meetings`)
+                }}
+              >
+                <Icon icon='mdi:edit' />
+                <span>Update Jadwal</span>
+              </MenuItem>
+            </Can>
 
-            <MenuItem
-              sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-              onClick={() => {
-                setIsMenuOpen('')
-                router.push(`/jadwal/${params?.row?.id}/detail`)
-              }}
-            >
-              <Icon icon='ph:eye' />
-              <span>Detail Jadwal</span>
-            </MenuItem>
+            {/* Only show "Detail Jadwal" if user has read permission on JADWAL */}
+            <Can I='read' a='JADWAL'>
+              <MenuItem
+                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                onClick={() => {
+                  setIsMenuOpen('')
+                  router.push(`/jadwal/${params?.row?.id}/detail`)
+                }}
+              >
+                <Icon icon='ph:eye' />
+                <span>Detail Jadwal</span>
+              </MenuItem>
+            </Can>
 
-            <MenuItem
-              sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
-              onClick={() => {
-                setIsMenuOpen('')
-                router.push(`/jadwal/${params?.row?.id}/absensi`)
-              }}
-            >
-              <Icon icon='mdi:clipboard-text-outline' />
-              <span>Detail Absensi</span>
-            </MenuItem>
+            {/* Only show "Detail Absensi" if user has read permission on ABSENSI */}
+            <Can I='read' a='ABSENSI'>
+              <MenuItem
+                sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }}
+                onClick={() => {
+                  setIsMenuOpen('')
+                  router.push(`/jadwal/${params?.row?.id}/absensi`)
+                }}
+              >
+                <Icon icon='mdi:clipboard-text-outline' />
+                <span>Detail Absensi</span>
+              </MenuItem>
+            </Can>
           </ActionTable>
         )
       }
-    }
-  ]
+    })
+  }
 
   const handleGetData = async (isPagination = false) => {
     setTableState(prev => ({ ...prev, isLoading: true }))
@@ -251,6 +279,11 @@ export const useTable = () => {
     })
   }
 
+  // Function to check if user can generate jadwal
+  const canGenerate = (ability: any) => {
+    return ability?.can('generate', 'JADWAL')
+  }
+
   // Reset page to 1 when search or pageSize changes
   useEffect(() => {
     setTableState(prev => ({ ...prev, page: 1 }))
@@ -267,6 +300,7 @@ export const useTable = () => {
     columns,
     isGenerating,
     handleGenerate,
+    canGenerate,
     tableState,
     setTableState,
     handleSearch,

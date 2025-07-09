@@ -1,5 +1,12 @@
 import MainPenerimaanAsistenContainer from 'src/libs/penerimaan-asisten/containers'
 
-export default function index() {
+const PenerimaanAsistenPage = () => {
   return <MainPenerimaanAsistenContainer />
 }
+
+PenerimaanAsistenPage.acl = {
+  subject: 'PENERIMAAN_ASISTEN_LAB',
+  action: 'read'
+}
+
+export default PenerimaanAsistenPage

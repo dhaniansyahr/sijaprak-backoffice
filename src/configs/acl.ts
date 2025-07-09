@@ -1,39 +1,81 @@
 import { AbilityBuilder, Ability } from '@casl/ability'
 
 export type Subjects = string
-export type Actions = 'manage' | 'create' | 'read' | 'update' | 'delete'
+export type Actions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'generate'
 
 export type AppAbility = Ability<[Actions, Subjects]> | undefined
 
 export const AppAbility = Ability as any
+
 export type ACLObj = {
   action: Actions
   subject: string
 }
 
+// Define the structure of ACL data received from API
+export type ACLData = {
+  [key: string]: {
+    [key in Actions]?: boolean
+  }
+}
+
+// API response structure for ACL
+export type ACLResponse = {
+  content: ACLData
+  message: string
+  errors: string[]
+}
+
 /**
- * Please define your own Ability rules according to your app requirements.
- * We have just shown Admin and Client rules for demo purpose where
- * admin can manage everything and client can just visit ACL page
+ * Build ability rules from API response
+ * @param aclData - ACL data from API response
+ * @returns Ability rules
  */
-const defineRulesFor = (role: string) => {
+const defineRulesFromACL = (aclData: ACLData) => {
   const { can, rules } = new AbilityBuilder(AppAbility)
 
-  if (role === 'admin') {
-    can('manage', 'all')
-  } else if (role === 'client') {
-    can(['read'], 'acl-page')
-  } else {
-    // can(['read', 'create', 'update', 'delete'], subject)
-    can('manage', 'all')
-  }
+  // Iterate through each module in ACL data
+  Object.keys(aclData).forEach(module => {
+    const permissions = aclData[module]
+
+    // Grant permissions for each action that is true
+    Object.keys(permissions).forEach(action => {
+      if (permissions[action as Actions] === true) {
+        can(action as Actions, module)
+      }
+    })
+  })
 
   return rules
 }
 
-export const buildAbilityFor = (role: string): AppAbility => {
-  return new AppAbility(defineRulesFor(role), {
+/**
+ * Build ability for user based on ACL data fetched from API
+ * @param aclData - ACL data from API
+ * @returns AppAbility instance
+ */
+export const buildAbilityForACL = (aclData: ACLData): AppAbility => {
+  return new AppAbility(defineRulesFromACL(aclData), {
     // https://casl.js.org/v5/en/guide/subject-type-detection
+    // @ts-ignore
+    detectSubjectType: object => object!.type
+  })
+}
+
+/**
+ * Legacy function for backward compatibility
+ * @deprecated Use buildAbilityForACL instead
+ */
+export const buildAbilityFor = (role: string): AppAbility => {
+  const { can, rules } = new AbilityBuilder(AppAbility)
+
+  if (role === 'SUPER_ADMIN') {
+    can('manage', 'all')
+  } else {
+    can('manage', 'all')
+  }
+
+  return new AppAbility(rules, {
     // @ts-ignore
     detectSubjectType: object => object!.type
   })
@@ -44,4 +86,4 @@ export const defaultACLObj: ACLObj = {
   subject: 'all'
 }
 
-export default defineRulesFor
+export default defineRulesFromACL

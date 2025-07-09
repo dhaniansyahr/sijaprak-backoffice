@@ -1,17 +1,23 @@
 import { Button } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { DialogRef } from 'src/components/shared/dialog'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { assignAsistenLab, getAsistenLabByJadwalId } from 'src/stores/asisten-lab/action'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRef>) {
   const dispatch = useAppDispatch()
+  const ability = useContext(AbilityContext)
 
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('assign_asisten', 'JADWAL')
+  }, [ability])
 
   const columns: GridColDef[] = useMemo(() => {
     return [
@@ -54,23 +60,28 @@ export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRe
         renderCell: (params: any) => {
           return <span>{params?.row?.mahasiswa?.semester ?? '-'}</span>
         }
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'Aksi',
-        minWidth: 160,
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
-            <Button variant='contained' size='small' onClick={() => handleAssign(params?.row?.id)}>
-              Assign
-            </Button>
-          )
-        }
       }
     ]
   }, [])
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'action',
+      headerName: 'Aksi',
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: any) => {
+        return (
+          <Can I={'assign_asisten'} a={'JADWAL'}>
+            <Button variant='contained' size='small' onClick={() => handleAssign(params?.row?.id)}>
+              Assign
+            </Button>
+          </Can>
+        )
+      }
+    })
+  }
 
   const handleGetData = async () => {
     setIsLoading(true)

@@ -1,7 +1,9 @@
+import { useAbility } from '@casl/react'
 import { debounce, Switch } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { deleteShift, getAllShift } from 'src/stores/master-data/shift/action'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
 import { ITableState } from 'src/types'
@@ -9,6 +11,8 @@ import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 
 export const useShiftTable = () => {
   const dispatch = useAppDispatch()
+  const ability = useAbility(AbilityContext)
+
   const { isRefresh } = useAppSelector(state => state.shift)
 
   const [tableState, setTableState] = useState<ITableState>({
@@ -22,6 +26,10 @@ export const useShiftTable = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false)
 
   const debouncedSearchRef = useRef<any>(null)
+
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('delete', 'SHIFT')
+  }, [ability])
 
   const columns: GridColDef[] = useMemo(
     () => [
@@ -46,27 +54,32 @@ export const useShiftTable = () => {
         field: 'endTime',
         headerName: 'End Time',
         sortable: false
-      },
-      {
-        flex: 0.25,
-        field: 'isActive',
-        headerName: 'Is Active',
-        minWidth: 160,
-        sortable: false,
-        renderCell: params => {
-          return (
+      }
+    ],
+    []
+  )
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'isActive',
+      headerName: 'Is Active',
+      minWidth: 160,
+      sortable: false,
+      renderCell: params => {
+        return (
+          <Can I={'delete'} a={'SHIFT'}>
             <Switch
               checked={params.row.isActive}
               color='success'
               onChange={e => handleActive(params?.row?.id)}
               disabled={tableState.isLoading}
             />
-          )
-        }
+          </Can>
+        )
       }
-    ],
-    [tableState.isLoading, isRefresh]
-  )
+    })
+  }
 
   const handleGetData = async (isPagination = false) => {
     setTableState(prev => ({ ...prev, isLoading: true }))

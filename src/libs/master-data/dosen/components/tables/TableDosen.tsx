@@ -50,16 +50,6 @@ const TableDosen = memo(() => {
           />
         </CardContent>
       </Card>
-
-      {/* <Suspense fallback={<DialogLoader />}>
-        {state.isDetail && (
-          <DialogDetailRuanganLaboratorium
-            open={state.isDetail}
-            onClose={() => handleCloseDialog('isDetail')}
-            values={state.rowSelected}
-          />
-        )}
-      </Suspense> */}
     </>
   )
 })

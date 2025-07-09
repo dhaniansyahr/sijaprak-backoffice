@@ -7,6 +7,8 @@ import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 import { EyeIcon, EditIcon, ChangeIcon } from 'src/components/shared/icons'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
+import { useAbility } from '@casl/react'
 
 // Memoized action buttons component to prevent re-renders
 const ActionButtons = ({
@@ -21,20 +23,30 @@ const ActionButtons = ({
   onChange: (row: any) => void
 }) => (
   <Box sx={{ display: 'flex', gap: 0.5 }}>
-    <IconButton onClick={() => onDetail(row)} size='small'>
-      <EyeIcon />
-    </IconButton>
-    <IconButton onClick={() => onEdit(row)} size='small'>
-      <EditIcon />
-    </IconButton>
-    <IconButton onClick={() => onChange(row)} size='small'>
-      <ChangeIcon />
-    </IconButton>
+    <Can I={'read'} a={'RUANGAN'}>
+      <IconButton onClick={() => onDetail(row)} size='small'>
+        <EyeIcon />
+      </IconButton>
+    </Can>
+
+    <Can I={'update'} a={'RUANGAN'}>
+      <IconButton onClick={() => onEdit(row)} size='small'>
+        <EditIcon />
+      </IconButton>
+    </Can>
+
+    <Can I={'create'} a={'HISTORY_KEPALA_LAB'}>
+      <IconButton onClick={() => onChange(row)} size='small'>
+        <ChangeIcon />
+      </IconButton>
+    </Can>
   </Box>
 )
 
 export const useRuanganTable = () => {
   const dispatch = useAppDispatch()
+  const ability = useAbility(AbilityContext)
+
   const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
 
   // State
@@ -100,6 +112,14 @@ export const useRuanganTable = () => {
     [dispatch]
   )
 
+  const isActionAllowed = useMemo(() => {
+    return (
+      ability?.can('read', 'RUANGAN') ||
+      ability?.can('update', 'RUANGAN') ||
+      ability?.can('create', 'HISTORY_KEPALA_LAB')
+    )
+  }, [ability])
+
   // Memoized columns definition
   const columns: GridColDef<any>[] = useMemo(
     () => [
@@ -142,27 +162,32 @@ export const useRuanganTable = () => {
         minWidth: 160,
         sortable: false,
         renderCell: params => (
-          <Switch
-            checked={params.row.isActive}
-            color='success'
-            onChange={() => handleSoftDeleteRuangan(params.row.id)}
-            size='small'
-          />
-        )
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'ACTION',
-        minWidth: 160,
-        sortable: false,
-        renderCell: params => (
-          <ActionButtons row={params.row} onDetail={handleDetail} onEdit={handleEdit} onChange={handleChange} />
+          <Can I={'delete'} a={'RUANGAN'}>
+            <Switch
+              checked={params.row.isActive}
+              color='success'
+              onChange={() => handleSoftDeleteRuangan(params.row.id)}
+              size='small'
+            />
+          </Can>
         )
       }
     ],
-    [handleDetail, handleEdit, handleChange, handleSoftDeleteRuangan]
+    [handleSoftDeleteRuangan]
   )
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'action',
+      headerName: 'ACTION',
+      minWidth: 160,
+      sortable: false,
+      renderCell: params => (
+        <ActionButtons row={params.row} onDetail={handleDetail} onEdit={handleEdit} onChange={handleChange} />
+      )
+    })
+  }
 
   const handleGetData = useCallback(
     async (isPagination = false) => {

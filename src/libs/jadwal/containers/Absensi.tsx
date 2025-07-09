@@ -1,5 +1,5 @@
 import { Box, Card, CardContent, Checkbox, CircularProgress, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import HeaderPage from 'src/components/shared/header-page'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
@@ -7,10 +7,13 @@ import { absent, getAbsensi } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
+import { useAbility } from '@casl/react'
+import { AbilityContext } from 'src/layouts/components/acl/Can'
 
 export default function AbsensiContainer() {
   const router: NextRouter = useRouter()
   const dispatch = useAppDispatch()
+  const ability = useAbility(AbilityContext)
 
   const { isRefresh } = useAppSelector(state => state.jadwal)
 
@@ -19,7 +22,11 @@ export default function AbsensiContainer() {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [data, setData] = useState<any>(null)
 
-  const columns = [
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('read', 'ABSENSI') || ability?.can('update', 'ABSENSI')
+  }, [ability])
+
+  const baseColumns = [
     {
       flex: 0.25,
       field: 'no',
@@ -51,8 +58,15 @@ export default function AbsensiContainer() {
 
         return <span>{nomorIdentitas ?? '-'}</span>
       }
-    },
-    ...(data?.[0]?.meetings?.map((meeting: any) => ({
+    }
+  ]
+
+  const columns = useMemo(() => {
+    if (!isActionAllowed || !data?.[0]?.meetings) {
+      return baseColumns
+    }
+
+    const absensiColumns = data[0].meetings.map((meeting: any) => ({
       flex: 0.25,
       field: `pertemuan_${meeting.pertemuan}`,
       headerName: `Pertemuan ${meeting.pertemuan}`,
@@ -76,34 +90,22 @@ export default function AbsensiContainer() {
           </Box>
         )
       }
-    })) ?? [])
+    }))
 
-    // {
-    //   flex: 0.25,
-    //   field: 'action',
-    //   headerName: 'Aksi',
-    //   sortable: false,
-    //   renderCell: (params: any) => {
-    //     return <span>{params?.row?.action ?? '-'}</span>
-    //   }
-    // }
-  ]
+    return [...baseColumns, ...absensiColumns]
+  }, [isActionAllowed, data, id])
 
   const handleGetData = async () => {
     setIsLoading(true)
 
-    // @ts-ignore
-    await dispatch(getAbsensi({ id })).then((res: any) => {
-      if (res.meta.requestStatus !== 'fulfilled') {
-        setIsLoading(false)
-
-        return
+    try {
+      const res = await dispatch(getAbsensi({ id }))
+      if (res.meta.requestStatus === 'fulfilled') {
+        setData(res.payload.content)
       }
-
-      const content = res.payload.content
-
-      setData(content)
-    })
+    } catch (error) {
+      console.error(error)
+    }
 
     setIsLoading(false)
   }
@@ -118,21 +120,21 @@ export default function AbsensiContainer() {
       userId
     }
 
-    // @ts-ignore
-    await dispatch(absent({ data: body })).then((res: any) => {
-      if (res.meta.requestStatus !== 'fulfilled') {
-        toast.dismiss()
-        toast.error('Gagal melakukan absensi!')
-
-        return
-      }
-
+    try {
+      const res = await dispatch(absent({ data: body }))
       toast.dismiss()
-      toast.success('Berhasil melakukan absensi!')
 
-      // @ts-ignore
-      dispatch(setIsRefresh(!isRefresh))
-    })
+      if (res.meta.requestStatus === 'fulfilled') {
+        toast.success('Berhasil melakukan absensi!')
+
+        dispatch(setIsRefresh())
+      } else {
+        toast.error('Gagal melakukan absensi!')
+      }
+    } catch (error) {
+      toast.dismiss()
+      toast.error('Gagal melakukan absensi!')
+    }
   }
 
   useEffect(() => {

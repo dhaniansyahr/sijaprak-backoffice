@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, CardHeader, CircularProgress, TextField } from '@mui/material'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import HeaderPage from 'src/components/shared/header-page'
-import { useListPendaftaranAsisten } from 'src/libs/pendaftaran-asisten/hooks/useListPendaftaranAsisten'
+import { useListPendaftaranAsisten } from 'src/libs/penerimaan-asisten/components/tables/useListPendaftaranAsisten'
 
 export default function TablePenerimaanAsistenLab() {
   const { columns, tableState, setTableState, handleSearch } = useListPendaftaranAsisten()

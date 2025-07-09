@@ -12,6 +12,7 @@ import authConfig from 'src/configs/auth'
 // ** Types
 import api from 'src/service/api'
 import { AuthValuesType, ErrCallbackType, LoginParams, UserDataType } from './types'
+import { ACLData, ACLResponse } from 'src/configs/acl'
 
 // ** Defaults
 const defaultProvider: AuthValuesType = {
@@ -20,7 +21,10 @@ const defaultProvider: AuthValuesType = {
   setUser: () => null,
   setLoading: () => Boolean,
   login: () => Promise.resolve(),
-  logout: () => Promise.resolve()
+  logout: () => Promise.resolve(),
+  acl: null,
+  aclLoading: false,
+  fetchACL: () => Promise.resolve()
 }
 
 const AuthContext = createContext(defaultProvider)
@@ -33,6 +37,8 @@ const AuthProvider = ({ children }: Props) => {
   // ** States
   const [user, setUser] = useState<UserDataType | null>(defaultProvider.user)
   const [loading, setLoading] = useState<boolean>(defaultProvider.loading)
+  const [acl, setAcl] = useState<ACLData | null>(defaultProvider.acl)
+  const [aclLoading, setAclLoading] = useState<boolean>(defaultProvider.aclLoading)
 
   // ** Hooks
   const router = useRouter()
@@ -53,9 +59,12 @@ const AuthProvider = ({ children }: Props) => {
       localStorage.removeItem('userData')
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('accessToken')
+      localStorage.removeItem('aclData')
     }
     setUser(null)
+    setAcl(null)
     setLoading(false)
+    setAclLoading(false)
   }, [])
 
   const getUserDataFromStorage = useCallback((): UserDataType | null => {
@@ -83,6 +92,59 @@ const AuthProvider = ({ children }: Props) => {
       console.error('Error saving user data to localStorage:', error)
     }
   }, [])
+
+  const getACLFromStorage = useCallback((): ACLData | null => {
+    try {
+      // ✅ Check if we're on client side
+      if (typeof window === 'undefined') return null
+
+      const aclData = localStorage.getItem('aclData')
+
+      return aclData ? JSON.parse(aclData) : null
+    } catch (error) {
+      console.error('Error parsing ACL data from localStorage:', error)
+
+      return null
+    }
+  }, [])
+
+  const setACLToStorage = useCallback((aclData: ACLData) => {
+    try {
+      // ✅ Check if we're on client side
+      if (typeof window === 'undefined') return
+
+      localStorage.setItem('aclData', JSON.stringify(aclData))
+    } catch (error) {
+      console.error('Error saving ACL data to localStorage:', error)
+    }
+  }, [])
+
+  // ** ACL Fetching Function
+  const fetchACL = useCallback(
+    async (userLevelId: string): Promise<void> => {
+      try {
+        setAclLoading(true)
+
+        const response = await api.get<ACLResponse>(`/acl/${userLevelId}`)
+
+        if (response.data.content) {
+          setAcl(response.data.content)
+          setACLToStorage(response.data.content)
+        }
+      } catch (error) {
+        console.error('Error fetching ACL data:', error)
+        setAcl(null)
+
+        // Remove ACL data from storage if fetch fails
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('aclData')
+        }
+      } finally {
+        setAclLoading(false)
+      }
+    },
+    [setACLToStorage]
+  )
 
   useEffect(() => {
     // ✅ Only run on client side
@@ -129,8 +191,19 @@ const AuthProvider = ({ children }: Props) => {
         setApiDefaults(storedToken)
 
         const userData = getUserDataFromStorage()
+        const storedAcl = getACLFromStorage()
+
         if (userData) {
           setUser(userData)
+
+          if (storedAcl) {
+            setAcl(storedAcl)
+          }
+
+          // Fetch fresh ACL data if user has userLevelId
+          if (userData.userLevelId || userData.roleId) {
+            await fetchACL(userData.userLevelId || userData.roleId)
+          }
         }
 
         setLoading(false)
@@ -176,7 +249,9 @@ const AuthProvider = ({ children }: Props) => {
           role: loginResponse.data.content?.user?.userLevel?.name,
           fullName: loginResponse.data.content?.user?.nama || loginResponse.data.content?.user?.fullName,
           noIdentitas: loginResponse.data.content?.user?.npm || loginResponse.data.content?.user?.nip,
-          email: loginResponse.data.content?.user?.email || ''
+          email: loginResponse.data.content?.user?.email || '',
+          roleId: loginResponse.data.content?.user?.userLevelId,
+          userLevelId: loginResponse.data.content?.user?.userLevelId
         }
 
         if (!token) {
@@ -201,6 +276,11 @@ const AuthProvider = ({ children }: Props) => {
         // Set API defaults
         setApiDefaults(token)
 
+        // Fetch ACL data for the user
+        if (userData.userLevelId) {
+          await fetchACL(userData.userLevelId)
+        }
+
         // Handle redirect
         const returnUrl = router.query.returnUrl
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/dashboard'
@@ -215,7 +295,7 @@ const AuthProvider = ({ children }: Props) => {
         }
       }
     },
-    [router, setApiDefaults, setUserDataToStorage, clearAuthData]
+    [router, setApiDefaults, setUserDataToStorage, clearAuthData, fetchACL]
   )
 
   const handleLogout = useCallback(async () => {
@@ -244,9 +324,12 @@ const AuthProvider = ({ children }: Props) => {
       setUser,
       setLoading,
       login: handleLogin,
-      logout: handleLogout
+      logout: handleLogout,
+      acl,
+      aclLoading,
+      fetchACL
     }),
-    [user, loading, handleLogin, handleLogout]
+    [user, loading, handleLogin, handleLogout, acl, aclLoading, fetchACL]
   )
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

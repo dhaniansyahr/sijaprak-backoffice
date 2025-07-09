@@ -7,6 +7,7 @@ import { LoadingButton } from '@mui/lab'
 import { useTable } from '../../hooks/useTable'
 import DataTable from 'src/components/shared/table'
 import DialogAssignAsistenLab from '../dialogs/DialogAssignAsistenLab'
+import Can from 'src/layouts/components/acl/Can'
 
 const TableJadwal = () => {
   const router = useRouter()
@@ -37,24 +38,29 @@ const TableJadwal = () => {
         }
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <LoadingButton
-              variant='outlined'
-              color='primary'
-              loading={isGenerating}
-              loadingIndicator={<CircularProgress size={20} />}
-              onClick={handleGenerate}
-              startIcon={<Icon icon='mdi:refresh' />}
-            >
-              Generate
-            </LoadingButton>
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={() => router.push('/jadwal/create')}
-              startIcon={<Icon icon='ic:baseline-add' />}
-            >
-              Tambah
-            </Button>
+            <Can I={'generate'} a={'JADWAL'}>
+              <LoadingButton
+                variant='outlined'
+                color='primary'
+                loading={isGenerating}
+                loadingIndicator={<CircularProgress size={20} />}
+                onClick={handleGenerate}
+                startIcon={<Icon icon='mdi:refresh' />}
+              >
+                Generate
+              </LoadingButton>
+            </Can>
+
+            <Can I={'create'} a={'JADWAL'}>
+              <Button
+                variant='contained'
+                color='primary'
+                onClick={() => router.push('/jadwal/create')}
+                startIcon={<Icon icon='ic:baseline-add' />}
+              >
+                Tambah
+              </Button>
+            </Can>
           </Box>
         }
         sx={{

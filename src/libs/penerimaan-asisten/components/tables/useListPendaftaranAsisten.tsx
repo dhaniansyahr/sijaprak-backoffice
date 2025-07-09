@@ -1,8 +1,10 @@
+import { useAbility } from '@casl/react'
 import { Icon } from '@iconify/react'
 import { Box, Button, debounce, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { getPendaftaranAsistenLab, penerimaanAsistenLab } from 'src/stores/asisten-lab/action'
 import { setIsRefresh } from 'src/stores/asisten-lab/slice'
 import { ITableState } from 'src/types'
@@ -10,6 +12,8 @@ import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 
 export const useListPendaftaranAsisten = () => {
   const dispatch = useAppDispatch()
+  const ability = useAbility(AbilityContext)
+
   const { isRefresh } = useAppSelector(state => state.asistenLab)
 
   const [tableState, setTableState] = useState<ITableState>({
@@ -21,6 +25,10 @@ export const useListPendaftaranAsisten = () => {
   })
 
   const debouncedSearchRef = useRef<any>(null)
+
+  const isActionAllowed = useMemo(() => {
+    return ability?.can('create', 'PENERIMAAN_ASISTEN_LAB')
+  }, [ability])
 
   const columns: GridColDef[] = useMemo(() => {
     return [
@@ -89,16 +97,21 @@ export const useListPendaftaranAsisten = () => {
         field: 'nilaiAkhir',
         headerName: 'Nilai Akhir',
         sortable: false
-      },
-      {
-        flex: 0.25,
-        field: 'action',
-        headerName: 'Aksi',
-        minWidth: 160,
-        sortable: false,
-        renderCell: (params: any) => {
-          return (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      }
+    ]
+  }, [])
+
+  if (isActionAllowed) {
+    columns.push({
+      flex: 0.25,
+      field: 'action',
+      headerName: 'Aksi',
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: any) => {
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Can I={'create'} a={'PENERIMAAN_ASISTEN_LAB'}>
               <Button
                 variant='outlined'
                 color='error'
@@ -116,12 +129,12 @@ export const useListPendaftaranAsisten = () => {
               >
                 Terima
               </Button>
-            </Box>
-          )
-        }
+            </Can>
+          </Box>
+        )
       }
-    ]
-  }, [])
+    })
+  }
 
   const handleGetData = async (isPagination = false) => {
     setTableState(prev => ({ ...prev, isLoading: true }))
