@@ -1,7 +1,8 @@
-import DashboardContainers from 'src/libs/dashboard/containers/DashboardContainers'
+// import DashboardContainers from 'src/libs/dashboard/containers/DashboardContainers'
+import EnhancedDashboard from 'src/libs/dashboard/containers/EnhancedDashboard'
 
 const Dashboard = () => {
-  return <DashboardContainers />
+  return <EnhancedDashboard />
 }
 
 Dashboard.acl = {
