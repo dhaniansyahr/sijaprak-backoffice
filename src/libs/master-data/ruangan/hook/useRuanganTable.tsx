@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 import { EyeIcon, EditIcon, ChangeIcon } from 'src/components/shared/icons'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { useAbility } from '@casl/react'
+import { DialogRef } from 'src/components/shared/dialog'
 
 // Memoized action buttons component to prevent re-renders
 const ActionButtons = ({
@@ -50,14 +51,6 @@ export const useRuanganTable = () => {
   const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
 
   // State
-  const [state, setState] = useState({
-    isAdd: false,
-    isEdit: false,
-    isDetail: false,
-    isChange: false,
-    rowSelected: null
-  })
-
   const [tableState, setTableState] = useState<ITableState>({
     page: 1,
     pageSize: 10,
@@ -68,18 +61,11 @@ export const useRuanganTable = () => {
 
   const debouncedSearchRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Memoized action handlers
-  const handleDetail = useCallback((row: any) => {
-    setState(prev => ({ ...prev, isDetail: true, rowSelected: row }))
-  }, [])
-
-  const handleEdit = useCallback((row: any) => {
-    setState(prev => ({ ...prev, isEdit: true, rowSelected: row }))
-  }, [])
-
-  const handleChange = useCallback((row: any) => {
-    setState(prev => ({ ...prev, isChange: true, rowSelected: row }))
-  }, [])
+  const [row, setRow] = useState<any>(null)
+  const addRef = useRef<DialogRef>(null)
+  const editRef = useRef<DialogRef>(null)
+  const detailRef = useRef<DialogRef>(null)
+  const changeRef = useRef<DialogRef>(null)
 
   const handleSoftDeleteRuangan = useCallback(
     async (id: string) => {
@@ -184,7 +170,21 @@ export const useRuanganTable = () => {
       minWidth: 160,
       sortable: false,
       renderCell: params => (
-        <ActionButtons row={params.row} onDetail={handleDetail} onEdit={handleEdit} onChange={handleChange} />
+        <ActionButtons
+          row={params.row}
+          onDetail={() => {
+            detailRef.current?.open()
+            setRow(params.row)
+          }}
+          onEdit={() => {
+            editRef.current?.open()
+            setRow(params.row)
+          }}
+          onChange={() => {
+            changeRef.current?.open()
+            setRow(params.row)
+          }}
+        />
       )
     })
   }
@@ -271,8 +271,11 @@ export const useRuanganTable = () => {
   }, [])
 
   return {
-    state,
-    setState,
+    row,
+    addRef,
+    editRef,
+    detailRef,
+    changeRef,
     columns,
     tableState,
     setTableState,

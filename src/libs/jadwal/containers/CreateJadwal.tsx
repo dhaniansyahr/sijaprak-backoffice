@@ -1,8 +1,7 @@
 import { Box, Button, Card, CardContent, CircularProgress, Divider, Grid } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import DialogConfirmation from '../components/dialogs/DialogConfirmation'
 import DialogConflict from '../components/dialogs/DialogConflict'
 import HeaderPage from 'src/components/shared/header-page'
 import { LoadingButton } from '@mui/lab'
@@ -13,6 +12,8 @@ import { createJadwal, getAvailableJadwal } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import DataTable from 'src/components/shared/table'
 import Can from 'src/layouts/components/acl/Can'
+import { DialogRef } from 'src/components/shared/dialog'
+import DialogConfirmation from 'src/components/shared/confirmation-dialog'
 
 export const hariOptions = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU']
 
@@ -23,6 +24,14 @@ export default function CreateJadwal() {
 
   const [isLoading, setIsLoading] = useState(false)
   const [availableJadwal, setAvailableJadwal] = useState<any>(null)
+
+  const conflictRef = useRef<DialogRef>(null)
+  const confirmationRef = useRef<DialogRef>(null)
+
+  const [isConflicting, setIsConflicting] = useState(false)
+  const [isConfirmating, setIsConfirmating] = useState(false)
+
+  const [conflictFormData, setConflictFormData] = useState<any>(null)
 
   const { control, handleSubmit, setValue } = useForm<any>({
     defaultValues: {
@@ -49,24 +58,6 @@ export default function CreateJadwal() {
       setAvailableJadwal(res.payload.content)
     })
   }
-
-  const [confirmationDialog, setConfirmationDialog] = useState<{
-    open: boolean
-    isLoading: boolean
-  }>({
-    open: false,
-    isLoading: false
-  })
-
-  const [conflictDialog, setConflictDialog] = useState<{
-    open: boolean
-    isLoading: boolean
-    formData: any
-  }>({
-    open: false,
-    isLoading: false,
-    formData: null
-  })
 
   const columns: GridColDef[] = [
     {
@@ -143,10 +134,7 @@ export default function CreateJadwal() {
   }
 
   const onSubmit = handleSubmit(async value => {
-    setConfirmationDialog(prev => ({
-      ...prev,
-      isLoading: true
-    }))
+    setIsConfirmating(true)
 
     try {
       const res = await createJadwalRequest(value)
@@ -154,85 +142,54 @@ export default function CreateJadwal() {
       if (res.meta.requestStatus !== 'fulfilled') {
         // Check if it's a 409 conflict error
         if (res.payload?.response?.status === 409 || res.payload?.status === 409) {
-          setConfirmationDialog(prev => ({
-            ...prev,
-            open: false,
-            isLoading: false
-          }))
+          setIsConfirmating(false)
 
           // Show conflict dialog
-          setConflictDialog({
-            open: true,
-            isLoading: false,
-            formData: value
-          })
+          setConflictFormData(value)
+          conflictRef.current?.open()
 
           return
         }
 
-        setConfirmationDialog(prev => ({
-          ...prev,
-          isLoading: false
-        }))
+        setIsConfirmating(false)
 
         toast.error(res?.payload?.message || 'Terjadi kesalahan saat membuat jadwal')
 
         return
       }
 
-      setConfirmationDialog(prev => ({
-        ...prev,
-        open: false,
-        isLoading: false
-      }))
+      setIsConfirmating(false)
 
       toast.success(res?.payload?.message || 'Jadwal berhasil dibuat')
       router.back()
     } catch (error: any) {
-      setConfirmationDialog(prev => ({
-        ...prev,
-        isLoading: false
-      }))
+      setIsConfirmating(false)
 
       toast.error('Terjadi kesalahan saat membuat jadwal')
     }
   })
 
   const handleOverrideSubmit = async () => {
-    setConflictDialog(prev => ({
-      ...prev,
-      isLoading: true
-    }))
+    setIsConflicting(true)
 
     try {
-      const res = await createJadwalRequest(conflictDialog.formData, true)
+      const res = await createJadwalRequest(conflictFormData, true)
 
       if (res.meta.requestStatus !== 'fulfilled') {
-        setConflictDialog(prev => ({
-          ...prev,
-          isLoading: false
-        }))
+        setIsConflicting(false)
 
         toast.error(res?.payload?.message || 'Terjadi kesalahan saat override jadwal')
 
         return
       }
 
-      setConflictDialog(prev => ({
-        ...prev,
-        open: false,
-        isLoading: false,
-        formData: null
-      }))
+      setIsConflicting(false)
 
       toast.success(res?.payload?.message || 'Jadwal berhasil dibuat dengan override')
 
       router.back()
     } catch (error: any) {
-      setConflictDialog(prev => ({
-        ...prev,
-        isLoading: false
-      }))
+      setIsConflicting(false)
 
       toast.error('Terjadi kesalahan saat override jadwal')
     }
@@ -257,7 +214,7 @@ export default function CreateJadwal() {
               <LoadingButton
                 variant='contained'
                 color='primary'
-                onClick={() => setConfirmationDialog(prev => ({ ...prev, open: true }))}
+                onClick={() => confirmationRef.current?.open()}
                 loadingIndicator={<CircularProgress size={20} />}
               >
                 Submit
@@ -307,18 +264,17 @@ export default function CreateJadwal() {
       </CardContent>
 
       <DialogConfirmation
-        open={confirmationDialog.open}
-        onClose={() => setConfirmationDialog(prev => ({ ...prev, open: false }))}
-        onSubmit={onSubmit}
-        isLoading={confirmationDialog.isLoading}
+        dialogRef={confirmationRef}
+        onConfirm={onSubmit}
+        isLoading={isConfirmating}
+        title='Apakah semua data terisi dengan benar?'
+        message='Pastikan dan konfirmasikan keakuratan data perubahan yang Anda buat'
+        onCancel={() => confirmationRef.current?.close()}
+        confirmText='Submit'
+        cancelText='Batal'
       />
 
-      <DialogConflict
-        open={conflictDialog.open}
-        onClose={() => setConflictDialog(prev => ({ ...prev, open: false, formData: null }))}
-        onSubmit={handleOverrideSubmit}
-        isLoading={conflictDialog.isLoading}
-      />
+      <DialogConflict dialogRef={conflictRef} onSubmit={handleOverrideSubmit} isLoading={isConflicting} />
     </Card>
   )
 }

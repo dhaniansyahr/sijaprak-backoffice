@@ -20,14 +20,11 @@ const DialogLoader = () => null
 
 const TableRuangan = memo(() => {
   // Hooks
-  const { columns, state, setState, tableState, setTableState, handleSearch } = useRuanganTable()
+  const { columns, row, addRef, editRef, detailRef, changeRef, tableState, setTableState, handleSearch } =
+    useRuanganTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
-  }
-
-  const handleCloseDialog = (dialogType: keyof typeof state) => {
-    setState(prev => ({ ...prev, [dialogType]: false }))
   }
 
   return (
@@ -53,7 +50,7 @@ const TableRuangan = memo(() => {
                 variant='contained'
                 color='primary'
                 sx={{ mb: 2 }}
-                onClick={() => setState(prev => ({ ...prev, isAdd: true }))}
+                onClick={() => addRef.current?.open()}
                 startIcon={<AddIcon />}
               >
                 Tambah Laboratorium
@@ -80,33 +77,13 @@ const TableRuangan = memo(() => {
       </Card>
 
       <Suspense fallback={<DialogLoader />}>
-        {state.isAdd && (
-          <DialogCreateRuanganLaboratorium open={state.isAdd} onClose={() => handleCloseDialog('isAdd')} />
-        )}
+        <DialogCreateRuanganLaboratorium ref={addRef} />
 
-        {state.isEdit && (
-          <DialogEditRuanganLaboratorium
-            open={state.isEdit}
-            onClose={() => handleCloseDialog('isEdit')}
-            values={state.rowSelected}
-          />
-        )}
+        <DialogEditRuanganLaboratorium ref={editRef} values={row} />
 
-        {state.isDetail && (
-          <DialogDetailRuanganLaboratorium
-            open={state.isDetail}
-            onClose={() => handleCloseDialog('isDetail')}
-            values={state.rowSelected}
-          />
-        )}
+        <DialogDetailRuanganLaboratorium ref={detailRef} values={row} />
 
-        {state.isChange && (
-          <DialogAssignKepalaLab
-            open={state.isChange}
-            onClose={() => handleCloseDialog('isChange')}
-            values={state.rowSelected}
-          />
-        )}
+        <DialogAssignKepalaLab ref={changeRef} values={row} />
       </Suspense>
     </>
   )

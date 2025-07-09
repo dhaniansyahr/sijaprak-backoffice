@@ -12,7 +12,6 @@ interface IDialogConfirmationProps {
   cancelText?: string
   onConfirm?: () => void
   onCancel?: () => void
-  confirmColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success'
   isLoading?: boolean
 }
 
@@ -24,7 +23,6 @@ const DialogConfirmation = ({
   cancelText = 'Cancel',
   onConfirm,
   onCancel,
-  confirmColor = 'error',
   isLoading = false
 }: IDialogConfirmationProps) => {
   const handleConfirm = () => {
@@ -45,8 +43,8 @@ const DialogConfirmation = ({
           dialogRef.current?.close()
         }
       }}
-      title={''}
-      maxWidth='xs'
+      title={'Konfirmasi'}
+      maxWidth='sm'
       footer={close => (
         <>
           <Button
@@ -60,7 +58,7 @@ const DialogConfirmation = ({
           >
             {cancelText}
           </Button>
-          <Button onClick={handleConfirm} variant='contained' color={confirmColor} disabled={isLoading}>
+          <Button onClick={handleConfirm} variant='contained' color={'primary'} disabled={isLoading}>
             {confirmText}
           </Button>
         </>

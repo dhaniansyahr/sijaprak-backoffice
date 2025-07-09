@@ -1,10 +1,8 @@
 // React Imports
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 // MUI Imports
 import Box from '@mui/material/Box'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid'
 import { useForm } from 'react-hook-form'
 import moment from 'moment'
@@ -12,19 +10,20 @@ import { useAppDispatch } from 'src/utils/dispatch'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
 import toast from 'react-hot-toast'
 import { handleMapErrors, IDialogProps } from 'src/utils/response.utils'
-import HeaderDialog from 'src/components/shared/dialog/dialog-header'
-import ActionDialog from 'src/components/shared/dialog/dialog-action'
-import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import FormDatePicker from 'src/components/shared/input/date'
-import { Typography } from '@mui/material'
+import { Button, CircularProgress, Typography } from '@mui/material'
 import { createShift } from 'src/stores/master-data/shift/action'
+import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import LoadingButton from '@mui/lab/LoadingButton'
 
-const Transition = TransitionDialog
+interface DialogAddProps {
+  ref: React.RefObject<DialogRef>
+}
 
-const DialogAdd = ({ open, onClose }: IDialogProps) => {
+const DialogAdd = ({ ref }: DialogAddProps) => {
   const dispatch = useAppDispatch()
 
-  const { control, reset, handleSubmit } = useForm<any>({
+  const { control, reset, handleSubmit, setError } = useForm<any>({
     defaultValues: {
       startTime: null,
       endTime: null
@@ -34,14 +33,14 @@ const DialogAdd = ({ open, onClose }: IDialogProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<any>([])
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsLoading(false)
     reset()
-    onClose()
+    ref.current?.close()
 
     // @ts-ignore
     dispatch(setIsRefresh())
-  }
+  }, [reset, ref, dispatch])
 
   const onSubmit = handleSubmit(async value => {
     setIsLoading(true)
@@ -55,7 +54,14 @@ const DialogAdd = ({ open, onClose }: IDialogProps) => {
     await dispatch(createShift({ data: body })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
         setIsLoading(false)
-        setErrors(res.payload.response.data?.errors)
+        const errors = res.payload.response.data?.errors || []
+
+        setErrors(errors)
+
+        errors.forEach((error: any) => {
+          setError(error.field, { message: error.message })
+        })
+
         toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
 
         return
@@ -70,27 +76,17 @@ const DialogAdd = ({ open, onClose }: IDialogProps) => {
   return (
     <Dialog
       fullWidth
-      open={open}
-      maxWidth='md'
-      scroll='body'
-      TransitionComponent={Transition}
-      PaperProps={{
-        sx: {
-          borderRadius: '0px'
+      isOpen={ref.current?.isOpen ?? false}
+      onChange={open => {
+        if (!open) {
+          ref.current?.close()
         }
       }}
+      maxWidth='md'
+      title='Tambah Shift'
     >
-      <HeaderDialog
-        onClose={handleClose}
-        title='Tambah Shift'
-        description='Isi formulir berikut untuk detail shift baru'
-      />
-
-      <form onSubmit={onSubmit}>
-        <DialogContent
-          sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-          style={{ paddingTop: '5px' }}
-        >
+      {close => (
+        <form onSubmit={onSubmit}>
           <Grid container spacing={4}>
             <Grid item xs={6}>
               <FormDatePicker
@@ -125,11 +121,28 @@ const DialogAdd = ({ open, onClose }: IDialogProps) => {
                 <Typography color='error'>{handleMapErrors(errors, 'endTime')}</Typography>
               )}
             </Grid>
-          </Grid>
-        </DialogContent>
 
-        <ActionDialog isLoading={isLoading} onClose={handleClose} />
-      </form>
+            <Grid item xs={12}>
+              <Box display='flex' gap={4}>
+                <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
+                  Batal
+                </Button>
+
+                <LoadingButton
+                  loading={isLoading}
+                  loadingIndicator={<CircularProgress size={20} />}
+                  type='submit'
+                  variant='contained'
+                  disabled={isLoading}
+                  color='error'
+                >
+                  Submit
+                </LoadingButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      )}
     </Dialog>
   )
 }

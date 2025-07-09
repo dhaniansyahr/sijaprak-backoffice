@@ -4,8 +4,6 @@ import { useEffect, useState, memo, useCallback } from 'react'
 // MUI Imports
 import { CircularProgress } from '@mui/material'
 import Box from '@mui/material/Box'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
@@ -16,11 +14,8 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
-import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
-import HeaderDialog from 'src/components/shared/dialog/dialog-header'
 import { getRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
-
-const Transition = TransitionDialog
+import Dialog, { DialogRef } from 'src/components/shared/dialog'
 
 const columns: GridColDef[] = [
   {
@@ -46,12 +41,11 @@ const columns: GridColDef[] = [
 ]
 
 interface DialogDetailProps {
-  open: boolean
-  onClose: () => void
+  ref: React.RefObject<DialogRef>
   values: any
 }
 
-const DialogDetailRuanganLaboratorium = memo(({ open, onClose, values }: DialogDetailProps) => {
+const DialogDetailRuanganLaboratorium = memo(({ ref, values }: DialogDetailProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -81,31 +75,25 @@ const DialogDetailRuanganLaboratorium = memo(({ open, onClose, values }: DialogD
   }, [dispatch, values?.id])
 
   useEffect(() => {
-    if (open && values?.id) {
+    if (values?.id) {
       handleGetData()
     }
-  }, [open, handleGetData])
+  }, [handleGetData])
 
   return (
     <Dialog
       fullWidth
-      open={open}
-      maxWidth='md'
-      scroll='body'
-      TransitionComponent={Transition}
-      PaperProps={{
-        sx: {
-          borderRadius: 0
+      isOpen={ref.current?.isOpen ?? false}
+      onChange={open => {
+        if (!open) {
+          ref.current?.close()
         }
       }}
+      maxWidth='md'
+      title='Detail Ruangan Laboratorium'
     >
-      <HeaderDialog title='Detail Ruangan Laboratorium' onClose={onClose} />
-
-      <DialogContent
-        sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-        style={{ paddingTop: 5 }}
-      >
-        {isLoading ? (
+      {() =>
+        isLoading ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
             <CircularProgress />
           </Box>
@@ -158,8 +146,8 @@ const DialogDetailRuanganLaboratorium = memo(({ open, onClose, values }: DialogD
               />
             </Grid>
           </Grid>
-        )}
-      </DialogContent>
+        )
+      }
     </Dialog>
   )
 })

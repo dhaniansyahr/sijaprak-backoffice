@@ -9,7 +9,7 @@ import Can from 'src/layouts/components/acl/Can'
 
 const TableShift = () => {
   // Hooks Table
-  const { columns, isAddDialogOpen, setIsAddDialogOpen, tableState, handleSearch, setTableState } = useShiftTable()
+  const { columns, addRef, tableState, handleSearch, setTableState } = useShiftTable()
 
   const onPaginationModelChange = (newModel: any) => {
     setTableState(prev => ({ ...prev, page: newModel.page + 1, pageSize: newModel.pageSize }))
@@ -37,7 +37,7 @@ const TableShift = () => {
               <Button
                 variant='contained'
                 color='primary'
-                onClick={() => setIsAddDialogOpen(true)}
+                onClick={() => addRef.current?.open()}
                 startIcon={<Icon icon='ic:baseline-add' />}
               >
                 Tambah Shift
@@ -64,7 +64,7 @@ const TableShift = () => {
         />
       </CardContent>
 
-      <DialogAdd open={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
+      <DialogAdd ref={addRef} />
     </Card>
   )
 }

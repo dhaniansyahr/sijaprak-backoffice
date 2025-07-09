@@ -1,9 +1,5 @@
 // React Imports
-import { useState, memo, useCallback } from 'react'
-
-// MUI Imports
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
+import React, { useState, memo, useCallback } from 'react'
 
 // Third Party Imports
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -15,20 +11,17 @@ import { useAppDispatch } from 'src/utils/dispatch'
 import { assignKepalaLab } from 'src/stores/master-data/ruangan/action'
 
 // Components
-import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
-import HeaderDialog from 'src/components/shared/dialog/dialog-header'
-import ActionDialog from 'src/components/shared/dialog/dialog-action'
 import FormSection from '../form'
-
-const Transition = TransitionDialog
+import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import { Box, Button, CircularProgress, Grid } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 interface IDialogAssignKepalaLab {
-  open: boolean
-  onClose: () => void
+  ref: React.RefObject<DialogRef>
   values: any
 }
 
-const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepalaLab) => {
+const DialogAssignKepalaLab = memo(({ ref, values }: IDialogAssignKepalaLab) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -44,9 +37,10 @@ const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepa
   const handleClose = useCallback(() => {
     setIsLoading(false)
     reset()
-    onClose()
+
+    ref.current?.close()
     dispatch(setIsRefresh())
-  }, [reset, onClose, dispatch])
+  }, [reset, ref, dispatch])
 
   const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
@@ -77,29 +71,44 @@ const DialogAssignKepalaLab = memo(({ open, onClose, values }: IDialogAssignKepa
 
   return (
     <Dialog
-      fullWidth
-      open={open}
-      maxWidth='md'
-      scroll='body'
-      TransitionComponent={Transition}
-      PaperProps={{
-        sx: {
-          borderRadius: 0
+      ref={ref}
+      isOpen={ref.current?.isOpen ?? false}
+      onChange={open => {
+        if (!open) {
+          ref.current?.close()
         }
       }}
+      title='Pergantian Kepala Laboratorium'
+      maxWidth='md'
+      fullWidth
     >
-      <HeaderDialog title='Pergantian Kepala Laboratorium' onClose={onClose} />
+      {close => (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <FormSection control={control} errors={errors} isAssignKepalaLab={true} />
+            </Grid>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent
-          sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-          style={{ paddingTop: 5 }}
-        >
-          <FormSection control={control} errors={errors} isAssignKepalaLab={true} />
-        </DialogContent>
-
-        <ActionDialog isLoading={isLoading} onClose={onClose} />
-      </form>
+            <Grid item xs={12}>
+              <Box display='flex' gap={4}>
+                <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
+                  Batal
+                </Button>
+                <LoadingButton
+                  loading={isLoading}
+                  loadingIndicator={<CircularProgress size={20} />}
+                  type='submit'
+                  variant='contained'
+                  disabled={isLoading}
+                  color='error'
+                >
+                  Submit
+                </LoadingButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      )}
     </Dialog>
   )
 })

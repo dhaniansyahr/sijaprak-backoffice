@@ -1,9 +1,5 @@
 // React Import
-import { useState, memo, useCallback } from 'react'
-
-// MUI Imports
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
+import React, { useState, memo, useCallback } from 'react'
 
 // Third Party
 import { useForm, SubmitHandler } from 'react-hook-form'
@@ -17,19 +13,16 @@ import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
 import { createRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
 
 // Components
-import HeaderDialog from 'src/components/shared/dialog/dialog-header'
-import ActionDialog from 'src/components/shared/dialog/dialog-action'
-import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
 import FormSection from '../form'
-
-const Transition = TransitionDialog
+import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import { Box, Button, CircularProgress, Grid } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 interface DialogCreateProps {
-  open: boolean
-  onClose: () => void
+  ref: React.RefObject<DialogRef>
 }
 
-const DialogCreateRuanganLaboratorium = memo(({ open, onClose }: DialogCreateProps) => {
+const DialogCreateRuanganLaboratorium = memo(({ ref }: DialogCreateProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -44,9 +37,10 @@ const DialogCreateRuanganLaboratorium = memo(({ open, onClose }: DialogCreatePro
 
   const handleClose = useCallback(() => {
     reset()
-    onClose()
+
+    ref.current?.close()
     dispatch(setIsRefresh())
-  }, [reset, onClose, dispatch])
+  }, [reset, ref, dispatch])
 
   const onSubmit: SubmitHandler<any> = useCallback(
     async value => {
@@ -85,32 +79,42 @@ const DialogCreateRuanganLaboratorium = memo(({ open, onClose }: DialogCreatePro
   return (
     <Dialog
       fullWidth
-      open={open}
-      maxWidth='md'
-      scroll='body'
-      TransitionComponent={Transition}
-      PaperProps={{
-        sx: {
-          borderRadius: 0
+      isOpen={ref.current?.isOpen ?? false}
+      onChange={open => {
+        if (!open) {
+          ref.current?.close()
         }
       }}
+      title='Tambah Ruangan Laboratorium'
+      maxWidth='md'
     >
-      <HeaderDialog
-        title='Tambah Ruangan Laboratorium'
-        onClose={onClose}
-        description='Isi formulir berikut untuk detail Ruangan Laboratorium baru'
-      />
+      {close => (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <FormSection control={control} errors={errorsResponse} />
+            </Grid>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent
-          sx={{ pb: 6, px: { xs: 8, sm: 15 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-          style={{ paddingTop: 5 }}
-        >
-          <FormSection control={control} errors={errorsResponse} />
-        </DialogContent>
-
-        <ActionDialog isLoading={isLoading} onClose={onClose} />
-      </form>
+            <Grid item xs={12}>
+              <Box display='flex' gap={4}>
+                <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
+                  Batal
+                </Button>
+                <LoadingButton
+                  loading={isLoading}
+                  loadingIndicator={<CircularProgress size={20} />}
+                  type='submit'
+                  variant='contained'
+                  disabled={isLoading}
+                  color='error'
+                >
+                  Submit
+                </LoadingButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      )}
     </Dialog>
   )
 })

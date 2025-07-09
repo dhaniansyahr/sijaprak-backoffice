@@ -1,51 +1,46 @@
 import { Icon } from '@iconify/react'
 import Box from '@mui/material/Box'
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import { LoadingButton } from '@mui/lab'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-import HeaderDialog from 'src/components/shared/dialog/dialog-header'
-import TransitionDialog from 'src/components/shared/dialog/dialog-transition'
-
-const Transition = TransitionDialog
+import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import { useCallback } from 'react'
 
 interface DialogConflictProps {
-  open: boolean
-  onClose: () => void
+  dialogRef: React.RefObject<DialogRef>
   onSubmit: () => Promise<void>
   isLoading: boolean
 }
 
-const DialogConflict = ({ open, onClose, onSubmit, isLoading }: DialogConflictProps) => {
+const DialogConflict = ({ dialogRef, onSubmit, isLoading }: DialogConflictProps) => {
+  const onClose = useCallback(() => {
+    dialogRef.current?.close()
+  }, [dialogRef])
+
   return (
     <Dialog
-      fullWidth
-      open={open}
-      maxWidth='sm'
-      scroll='body'
-      TransitionComponent={Transition}
-      sx={{
-        '& .MuiDialog-paper': { border: 'none', borderRadius: '0px' }
+      ref={dialogRef}
+      isOpen={dialogRef.current?.isOpen ?? false}
+      onChange={open => {
+        if (!open) {
+          dialogRef.current?.close()
+        }
       }}
+      title='Konflik Jadwal Terdeteksi'
+      maxWidth='sm'
+      fullWidth
     >
-      <HeaderDialog onClose={onClose} title='Konflik Jadwal Terdeteksi' />
+      {() => (
+        <form
+          action='submit'
+          onSubmit={e => {
+            e.preventDefault()
 
-      <form
-        action='submit'
-        onSubmit={e => {
-          e.preventDefault()
-
-          onSubmit()
-        }}
-      >
-        <DialogContent
-          sx={{ pb: 6, px: { xs: 8, sm: 10 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-          style={{ paddingTop: '5px' }}
+            onSubmit()
+          }}
         >
           <Grid container spacing={4}>
             <Grid item xs={12}>
@@ -71,6 +66,7 @@ const DialogConflict = ({ open, onClose, onSubmit, isLoading }: DialogConflictPr
                 </Box>
               </Box>
             </Grid>
+
             <Grid item xs={12}>
               <Typography variant='h5' align='center'>
                 Jadwal Bentrok Terdeteksi!
@@ -80,27 +76,27 @@ const DialogConflict = ({ open, onClose, onSubmit, isLoading }: DialogConflictPr
                 menimpa jadwal yang sudah ada?
               </Typography>
             </Grid>
-          </Grid>
-        </DialogContent>
 
-        <DialogActions sx={{ pb: { xs: 8, sm: 10 }, justifyContent: 'end', px: { xs: 8, sm: 15 } }}>
-          <Box display='flex' gap={4}>
-            <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={onClose}>
-              Batal
-            </Button>
-            <LoadingButton
-              loading={isLoading}
-              loadingIndicator={<CircularProgress size={20} />}
-              type='submit'
-              variant='contained'
-              disabled={isLoading}
-              color='error'
-            >
-              Ya, Override
-            </LoadingButton>
-          </Box>
-        </DialogActions>
-      </form>
+            <Grid item xs={12}>
+              <Box display='flex' gap={4}>
+                <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={onClose}>
+                  Batal
+                </Button>
+                <LoadingButton
+                  loading={isLoading}
+                  loadingIndicator={<CircularProgress size={20} />}
+                  type='submit'
+                  variant='contained'
+                  disabled={isLoading}
+                  color='error'
+                >
+                  Ya, Override
+                </LoadingButton>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      )}
     </Dialog>
   )
 }

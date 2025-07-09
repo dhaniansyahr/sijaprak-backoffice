@@ -3,6 +3,7 @@ import { debounce, Switch } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useState, useMemo, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import { DialogRef } from 'src/components/shared/dialog'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { deleteShift, getAllShift } from 'src/stores/master-data/shift/action'
 import { setIsRefresh } from 'src/stores/master-data/shift/slice'
@@ -23,7 +24,7 @@ export const useShiftTable = () => {
     data: null
   })
 
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false)
+  const addRef = useRef<DialogRef>(null)
 
   const debouncedSearchRef = useRef<any>(null)
 
@@ -176,8 +177,7 @@ export const useShiftTable = () => {
   }, [tableState.page, tableState.pageSize])
 
   return {
-    isAddDialogOpen,
-    setIsAddDialogOpen,
+    addRef,
     columns,
     tableState,
     setTableState,
