@@ -2,9 +2,10 @@ import { Box, Card, CardContent, CardHeader, CircularProgress, TextField } from 
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import HeaderPage from 'src/components/shared/header-page'
 import { useListPendaftaranAsisten } from 'src/libs/penerimaan-asisten/components/tables/useListPendaftaranAsisten'
+import DialogRejection from '../dialogs/DialogRejection'
 
 export default function TablePenerimaanAsistenLab() {
-  const { columns, tableState, setTableState, handleSearch } = useListPendaftaranAsisten()
+  const { columns, tableState, setTableState, handleSearch, rejectRef, rowId } = useListPendaftaranAsisten()
 
   return (
     <Card>
@@ -58,6 +59,8 @@ export default function TablePenerimaanAsistenLab() {
           }}
         />
       </CardContent>
+
+      <DialogRejection dialogRef={rejectRef} id={rowId} />
     </Card>
   )
 }

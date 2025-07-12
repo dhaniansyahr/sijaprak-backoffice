@@ -34,6 +34,19 @@ export const getAvailableJadwal = createAsyncThunk(
   }
 )
 
+export const getAllParticipantsAndMeetings = createAsyncThunk(
+  'get/jadwal/participants-and-meetings',
+  async ({ id }: { id: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/jadwal/${id}/meetings-and-participants`)
+
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error)
+    }
+  }
+)
+
 export const createJadwal = createAsyncThunk('create/jadwal', async ({ data }: { data: any }, { rejectWithValue }) => {
   try {
     const response = await api.post(`/jadwal`, data)
@@ -48,7 +61,7 @@ export const updateMeeting = createAsyncThunk(
   'update/meeting',
   async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/meeting/${id}`, data)
+      const response = await api.put(`/jadwal/meeting/${id}`, data)
 
       return response.data
     } catch (error) {
@@ -56,16 +69,6 @@ export const updateMeeting = createAsyncThunk(
     }
   }
 )
-
-export const deleteJadwal = createAsyncThunk('delete/jadwal', async ({ data }: { data: any }, { rejectWithValue }) => {
-  try {
-    const response = await api.delete(`/jadwal`, data)
-
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error)
-  }
-})
 
 export const generateJawdal = createAsyncThunk('generate/jadwal', async (_, { rejectWithValue }) => {
   try {
@@ -76,19 +79,6 @@ export const generateJawdal = createAsyncThunk('generate/jadwal', async (_, { re
     return rejectWithValue(error)
   }
 })
-
-export const getAllMataKuliah = createAsyncThunk(
-  'get/mata-kuliah',
-  async ({ data }: { data: any }, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/jadwal/mata-kuliah`, data)
-
-      return response.data
-    } catch (error) {
-      return rejectWithValue(error)
-    }
-  }
-)
 
 // Pertemuan
 export const getAllMeetings = createAsyncThunk(
@@ -104,19 +94,9 @@ export const getAllMeetings = createAsyncThunk(
   }
 )
 
-export const getAbsensi = createAsyncThunk('get/absensi', async ({ id }: { id: string }, { rejectWithValue }) => {
-  try {
-    const response = await api.get(`/meeting/jadwal/${id}/participants`)
-
-    return response.data
-  } catch (error) {
-    return rejectWithValue(error)
-  }
-})
-
 export const absent = createAsyncThunk('absent/jadwal', async ({ data }: { data: any }, { rejectWithValue }) => {
   try {
-    const response = await api.post(`/absensi`, data)
+    const response = await api.post(`/jadwal/absent`, data)
 
     return response.data
   } catch (error) {
@@ -130,6 +110,19 @@ export const daftarAsisten = createAsyncThunk(
   async ({ data }: { data: any }, { rejectWithValue }) => {
     try {
       const response = await api.post(`/pendaftaran-asisten-lab`, data)
+
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error)
+    }
+  }
+)
+
+export const getAbsentNow = createAsyncThunk(
+  'get/jadwal/absent-now',
+  async ({ data }: { data: any }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/jadwal/absent/now`, data)
 
       return response.data
     } catch (error) {

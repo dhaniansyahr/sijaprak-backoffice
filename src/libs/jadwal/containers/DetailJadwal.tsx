@@ -146,7 +146,7 @@ const DetailPertemuan = memo(({ meetings, isLoading }: { meetings: any; isLoadin
           </Grid>
         </Grid>
       ))
-    : meetings?.entries?.map((meeting: any, meetingIdx: number) => {
+    : meetings?.map((meeting: any, meetingIdx: number) => {
         return (
           <Grid item xs={6} key={meetingIdx} marginBottom={'16px'}>
             <Grid container spacing={2} borderBottom={'1px solid #4C4E6438'} paddingBottom={'8px'}>
@@ -172,11 +172,9 @@ export default function DetailJadwal() {
   const [state, setState] = useState<{
     isLoading: boolean
     data: any
-    meetings: any
   }>({
     isLoading: false,
-    data: null,
-    meetings: null
+    data: null
   })
 
   const columns = [
@@ -215,18 +213,15 @@ export default function DetailJadwal() {
   const handleGetDetail = async () => {
     setState(prev => ({ ...prev, isLoading: true }))
 
-    const [jadwal, meetings] = await Promise.all([
-      dispatch(getJadwal({ id })),
-      dispatch(getAllMeetings({ jadwalId: id, data: { params: { page: 1, rows: 10000 } } }))
-    ])
+    const jadwal = await dispatch(getJadwal({ id }))
 
-    if (jadwal.meta.requestStatus !== 'fulfilled' || meetings.meta.requestStatus !== 'fulfilled') {
+    if (jadwal.meta.requestStatus !== 'fulfilled') {
       setState(prev => ({ ...prev, isLoading: false }))
 
       return
     }
 
-    setState(prev => ({ ...prev, isLoading: false, data: jadwal.payload.content, meetings: meetings.payload.content }))
+    setState(prev => ({ ...prev, isLoading: false, data: jadwal.payload.content }))
   }
 
   useEffect(() => {
@@ -247,7 +242,7 @@ export default function DetailJadwal() {
             </Typography>
           </Grid>
 
-          <DetailPertemuan meetings={state?.meetings} isLoading={state?.isLoading} />
+          <DetailPertemuan meetings={state?.data?.Meeting} isLoading={state?.isLoading} />
 
           <Grid item xs={12}>
             <Typography variant='h5' sx={{ fontWeight: 600 }}>

@@ -7,7 +7,7 @@ import HeaderDialog from './dialog-header'
 const Transition = TransitionDialog
 
 export interface DialogProps {
-  isOpen: boolean
+  isOpen?: boolean
   onChange?: (value: boolean) => void
   children: (close: () => void) => React.ReactNode
   title?: React.ReactNode
@@ -23,7 +23,7 @@ export interface DialogProps {
 export type DialogRef = {
   open: () => void
   close: () => void
-  isOpen: boolean
+  isOpen?: boolean
 }
 
 const Dialog = React.forwardRef<DialogRef, DialogProps>((props, ref) => {
@@ -102,7 +102,8 @@ const Dialog = React.forwardRef<DialogRef, DialogProps>((props, ref) => {
           sx={{
             padding: theme.spacing(2, 3, 3, 3),
             borderTop: `1px solid ${theme.palette.divider}`,
-            gap: theme.spacing(2)
+            gap: theme.spacing(2),
+            paddingTop: '8px !important'
           }}
         >
           {footer(close)}

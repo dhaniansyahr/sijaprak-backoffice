@@ -2,7 +2,7 @@ import { GridColDef } from '@mui/x-data-grid'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ITableState } from 'src/types'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { getAllMataKuliah } from 'src/stores/jadwal/action'
+import { getAllMatakuliah } from 'src/stores/master-data/mata-kuliah/action'
 
 // Memoized action buttons component to prevent re-renders
 // const ActionButtons = ({ row, onDetail }: { row: any; onDetail: (row: any) => void }) => (
@@ -95,7 +95,7 @@ export const useTable = () => {
       }
 
       try {
-        const response = await dispatch(getAllMataKuliah({ data: body }))
+        const response = await dispatch(getAllMatakuliah({ data: body }))
         const newData = response.payload.content
 
         if (isPagination && newData?.entries?.length) {

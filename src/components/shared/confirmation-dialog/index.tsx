@@ -5,7 +5,7 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { Icon } from '@iconify/react'
 
 interface IDialogConfirmationProps {
-  dialogRef: React.RefObject<DialogRef | null>
+  dialogRef: React.RefObject<DialogRef>
   title?: string
   message?: string
   confirmText?: string
@@ -37,6 +37,7 @@ const DialogConfirmation = ({
 
   return (
     <Dialog
+      ref={dialogRef}
       isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {

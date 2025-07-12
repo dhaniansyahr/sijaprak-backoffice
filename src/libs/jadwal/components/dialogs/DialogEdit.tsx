@@ -7,7 +7,7 @@ import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Dialog, { DialogRef } from 'src/components/shared/dialog'
 import FormDatePicker from 'src/components/shared/input/date'
-import { getAllMeetings, updateMeeting } from 'src/stores/jadwal/action'
+import { getJadwal, updateMeeting } from 'src/stores/jadwal/action'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { useAppDispatch } from 'src/utils/dispatch'
 
@@ -31,14 +31,14 @@ const DialogEdit = ({ dialogRef, row }: IDialogProps) => {
     setIsFetchMeeting(true)
 
     // @ts-ignore
-    await dispatch(getAllMeetings({ jadwalId: row?.id, data: { params: { page: 1, rows: 10000 } } })).then(res => {
+    await dispatch(getJadwal({ id: row?.id })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
         setIsFetchMeeting(false)
 
         return
       }
 
-      setMeetings(res.payload.content?.entries)
+      setMeetings(res.payload.content?.Meeting)
       setIsFetchMeeting(false)
     })
   }

@@ -90,7 +90,7 @@ const DialogAssignKepalaLab = memo(({ dialogRef, values }: IDialogAssignKepalaLa
             </Grid>
 
             <Grid item xs={12}>
-              <Box display='flex' gap={4}>
+              <Box display='flex' justifyContent={'flex-end'} gap={4}>
                 <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
                   Batal
                 </Button>
@@ -100,7 +100,7 @@ const DialogAssignKepalaLab = memo(({ dialogRef, values }: IDialogAssignKepalaLa
                   type='submit'
                   variant='contained'
                   disabled={isLoading}
-                  color='error'
+                  color='primary'
                 >
                   Submit
                 </LoadingButton>

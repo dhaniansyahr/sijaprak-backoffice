@@ -35,7 +35,7 @@ const navigation = (): VerticalNavItemsType => {
         {
           title: 'Mata Kuliah',
           path: '/master-data/mata-kuliah',
-          subject: 'MASTER_DATA',
+          subject: 'MATA_KULIAH',
           action: 'read'
         },
         {

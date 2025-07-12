@@ -6,10 +6,11 @@ import { deleteRuanganLaboratorium, getAllRuanganLaboratorium } from 'src/stores
 import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
 import { ITableState } from 'src/types'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { EyeIcon, EditIcon, ChangeIcon } from 'src/components/shared/icons'
+import { EyeIcon, EditIcon } from 'src/components/shared/icons'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { useAbility } from '@casl/react'
 import { DialogRef } from 'src/components/shared/dialog'
+import { Icon } from '@iconify/react'
 
 // Memoized action buttons component to prevent re-renders
 const ActionButtons = ({
@@ -22,27 +23,45 @@ const ActionButtons = ({
   onDetail: (row: any) => void
   onEdit: (row: any) => void
   onChange: (row: any) => void
-}) => (
-  <Box sx={{ display: 'flex', gap: 0.5 }}>
-    <Can I={'read'} a={'RUANGAN'}>
-      <IconButton onClick={() => onDetail(row)} size='small'>
-        <EyeIcon />
-      </IconButton>
-    </Can>
+}) => {
+  // Debug function to test if buttons are working
+  const handleDetailClick = () => {
+    console.log('Detail button clicked for row:', row)
+    onDetail(row)
+  }
 
-    <Can I={'update'} a={'RUANGAN'}>
-      <IconButton onClick={() => onEdit(row)} size='small'>
-        <EditIcon />
-      </IconButton>
-    </Can>
+  const handleEditClick = () => {
+    console.log('Edit button clicked for row:', row)
+    onEdit(row)
+  }
 
-    <Can I={'create'} a={'HISTORY_KEPALA_LAB'}>
-      <IconButton onClick={() => onChange(row)} size='small'>
-        <ChangeIcon />
-      </IconButton>
-    </Can>
-  </Box>
-)
+  const handleChangeClick = () => {
+    console.log('Change button clicked for row:', row)
+    onChange(row)
+  }
+
+  return (
+    <Box sx={{ display: 'flex', gap: 0.5 }}>
+      <Can I={'read'} a={'RUANGAN'}>
+        <IconButton onClick={handleDetailClick} size='small'>
+          <EyeIcon />
+        </IconButton>
+      </Can>
+
+      <Can I={'update'} a={'RUANGAN'}>
+        <IconButton onClick={handleEditClick} size='small'>
+          <EditIcon />
+        </IconButton>
+      </Can>
+
+      <Can I={'change_kepala_lab'} a={'RUANGAN'}>
+        <IconButton onClick={handleChangeClick} size='small'>
+          <Icon icon='ph:user-circle-gear' />
+        </IconButton>
+      </Can>
+    </Box>
+  )
+}
 
 export const useRuanganTable = () => {
   const dispatch = useAppDispatch()
@@ -98,13 +117,56 @@ export const useRuanganTable = () => {
     [dispatch]
   )
 
+  // Debug function to check permissions
+  const debugPermissions = () => {
+    console.log('Current abilities:', {
+      canRead: ability?.can('read', 'RUANGAN'),
+      canUpdate: ability?.can('update', 'RUANGAN'),
+      canChangeKepalaLab: ability?.can('change_kepala_lab', 'RUANGAN'),
+      canDelete: ability?.can('delete', 'RUANGAN')
+    })
+  }
+
   const isActionAllowed = useMemo(() => {
-    return (
+    const allowed =
       ability?.can('read', 'RUANGAN') ||
       ability?.can('update', 'RUANGAN') ||
-      ability?.can('create', 'HISTORY_KEPALA_LAB')
-    )
+      ability?.can('change_kepala_lab', 'RUANGAN')
+    console.log('Is action allowed:', allowed)
+
+    return allowed
   }, [ability])
+
+  // Enhanced dialog handlers with debugging
+  const handleDetailClick = useCallback((rowData: any) => {
+    console.log('Opening detail dialog for:', rowData)
+    setRow(rowData)
+    if (detailRef.current) {
+      detailRef.current.open()
+    } else {
+      console.error('Detail ref is null')
+    }
+  }, [])
+
+  const handleEditClick = useCallback((rowData: any) => {
+    console.log('Opening edit dialog for:', rowData)
+    setRow(rowData)
+    if (editRef.current) {
+      editRef.current.open()
+    } else {
+      console.error('Edit ref is null')
+    }
+  }, [])
+
+  const handleChangeClick = useCallback((rowData: any) => {
+    console.log('Opening change dialog for:', rowData)
+    setRow(rowData)
+    if (changeRef.current) {
+      changeRef.current.open()
+    } else {
+      console.error('Change ref is null')
+    }
+  }, [])
 
   // Memoized columns definition
   const columns: GridColDef<any>[] = useMemo(
@@ -172,18 +234,9 @@ export const useRuanganTable = () => {
       renderCell: params => (
         <ActionButtons
           row={params.row}
-          onDetail={() => {
-            detailRef.current?.open()
-            setRow(params.row)
-          }}
-          onEdit={() => {
-            editRef.current?.open()
-            setRow(params.row)
-          }}
-          onChange={() => {
-            changeRef.current?.open()
-            setRow(params.row)
-          }}
+          onDetail={handleDetailClick}
+          onEdit={handleEditClick}
+          onChange={handleChangeClick}
         />
       )
     })
@@ -261,6 +314,11 @@ export const useRuanganTable = () => {
     }
   }, [tableState.page, tableState.pageSize])
 
+  // Debug permissions on mount
+  useEffect(() => {
+    debugPermissions()
+  }, [ability])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -279,6 +337,7 @@ export const useRuanganTable = () => {
     columns,
     tableState,
     setTableState,
-    handleSearch
+    handleSearch,
+    debugPermissions // Add this for debugging
   }
 }

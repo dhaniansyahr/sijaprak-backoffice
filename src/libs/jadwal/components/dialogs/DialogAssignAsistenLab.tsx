@@ -13,18 +13,7 @@ const DialogAssignAsistenLab = ({ dialogRef, id }: IDialogProps) => {
   const { columns, data, isLoading } = useAssignAsisten(id, dialogRef)
 
   return (
-    <Dialog
-      ref={dialogRef}
-      isOpen={dialogRef.current?.isOpen ?? false}
-      onChange={open => {
-        if (!open) {
-          dialogRef.current?.close()
-        }
-      }}
-      title='Assign Asisten Lab'
-      maxWidth='md'
-      fullWidth
-    >
+    <Dialog ref={dialogRef} title='Assign Asisten Lab' maxWidth='md' fullWidth>
       {() => (
         <Grid container spacing={4}>
           <Grid item xs={12}>

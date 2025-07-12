@@ -35,6 +35,8 @@ import { Icon } from '@iconify/react'
 import api from 'src/service/api'
 import Can from 'src/layouts/components/acl/Can'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
+import { useAppDispatch } from 'src/utils/dispatch'
+import { getAbsentNow } from 'src/stores/jadwal/action'
 
 interface DashboardData {
   totalStudents: number
@@ -411,13 +413,39 @@ const ScheduleOverview = () => {
 }
 
 const IncomingAbsent = () => {
+  const dispatch = useAppDispatch()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [data, setData] = useState<any>(null)
+
+  const handleGetData = async () => {
+    setIsLoading(true)
+
+    // @ts-ignore
+    await dispatch(getAbsentNow({ data: {} })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
+
+        return
+      }
+
+      setIsLoading(false)
+      setData(res.payload.content)
+    })
+
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    handleGetData()
+  }, [])
+
   return (
     <Card>
       <CardHeader
         title={
           <Box>
             <Typography variant='h6' sx={{ fontWeight: 500 }}>
-              Absensi yang akan datang
+              Absensi
             </Typography>
           </Box>
         }
@@ -429,63 +457,60 @@ const IncomingAbsent = () => {
         }}
       />
 
-      <CardHeader
-        title={
-          <Box>
-            <Typography variant='h6' sx={{ fontWeight: 500 }}>
-              Rekayasa Perangkat Lunak - Pertemuan Ke 1
-            </Typography>
-          </Box>
-        }
-        action={<Button variant='contained'>Absen</Button>}
-        sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: { xs: 'start', md: 'center' }
-        }}
-      />
-
       <CardContent sx={{ marginTop: '16px' }}>
         <Grid container spacing={4}>
-          {[
-            {
-              field: 'Mata Kuliah',
-              value: 'Rekayasa Perangkat Lunak'
-            },
-            {
-              field: 'Dosen Pengajar',
-              value: 'Dosen 1'
-            },
-            {
-              field: 'Tanggal',
-              value: '01 Januari 2025'
-            },
-            {
-              field: 'Ruangan',
-              value: 'Laboratorium Rekayasa Perangkat Lunak'
-            },
-            {
-              field: 'Waktu',
-              value: '08:00 - 09:40 WIB'
-            },
-            {
-              field: 'Pertemuan',
-              value: '01'
-            }
-          ].map((item: any, index: number) => (
-            <Grid item xs={6} key={index}>
-              <Grid container spacing={2} borderBottom={'1px solid #4c4e6438'} paddingBottom={'16px'}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-                    {item.field}
-                  </Typography>
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant='h6' sx={{ fontWeight: 500 }}>
+                Rekayasa Perangkat Lunak - Pertemuan Ke 1
+              </Typography>
+              <Button variant='contained'>Absen</Button>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Grid container spacing={4}>
+              {[
+                {
+                  field: 'Mata Kuliah',
+                  value: 'Rekayasa Perangkat Lunak'
+                },
+                {
+                  field: 'Dosen Pengajar',
+                  value: 'Dosen 1'
+                },
+                {
+                  field: 'Tanggal',
+                  value: '01 Januari 2025'
+                },
+                {
+                  field: 'Ruangan',
+                  value: 'Laboratorium Rekayasa Perangkat Lunak'
+                },
+                {
+                  field: 'Waktu',
+                  value: '08:00 - 09:40 WIB'
+                },
+                {
+                  field: 'Pertemuan',
+                  value: '01'
+                }
+              ].map((item: any, index: number) => (
+                <Grid item xs={6} key={index}>
+                  <Grid container spacing={2} borderBottom={'1px solid #4c4e6438'} paddingBottom={'16px'}>
+                    <Grid item xs={4}>
+                      <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+                        {item.field}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={8}>
+                      <Typography variant='body1'>{item.value}</Typography>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>{item.value}</Typography>
-                </Grid>
-              </Grid>
+              ))}
             </Grid>
-          ))}
+          </Grid>
         </Grid>
       </CardContent>
     </Card>

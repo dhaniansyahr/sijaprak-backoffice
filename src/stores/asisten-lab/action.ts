@@ -29,9 +29,9 @@ export const getAllJadwalForPendaftaran = createAsyncThunk(
 
 export const getAsistenLabByJadwalId = createAsyncThunk(
   'get/asisten-lab-by-jadwal-id',
-  async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
+  async ({ id }: { id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/asisten-lab/jadwal/${id}`, data)
+      const response = await api.get(`/asisten-lab/jadwal/${id}`)
 
       return response.data
     } catch (error) {

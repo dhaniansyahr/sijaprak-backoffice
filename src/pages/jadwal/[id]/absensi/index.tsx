@@ -5,8 +5,8 @@ const AbsensiPage = () => {
 }
 
 AbsensiPage.acl = {
-  subject: 'ABSENSI',
-  action: 'read'
+  subject: 'JADWAL',
+  action: 'absensi'
 }
 
 export default AbsensiPage

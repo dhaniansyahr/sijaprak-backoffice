@@ -3,9 +3,9 @@ import { hariOptions } from '../../containers/CreateJadwal'
 import { Control, Controller } from 'react-hook-form'
 import { useEffect, useState } from 'react'
 import { useAppDispatch } from 'src/utils/dispatch'
+import { getAllMatakuliah } from 'src/stores/master-data/mata-kuliah/action'
 import { getAllShift } from 'src/stores/master-data/shift/action'
 import { getAllRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
-import { getAllMataKuliah } from 'src/stores/jadwal/action'
 
 interface IFormJadwalProps {
   control: Control<any>
@@ -33,13 +33,21 @@ export default function FormJadwal(props: IFormJadwalProps) {
       }
     }
 
+    const bodyMk: any = {
+      params: {
+        page: 1,
+        rows: 1000000,
+        filters: { isTeori: false }
+      }
+    }
+
+    bodyMk.params.filters = JSON.stringify(bodyMk.params.filters)
+
     // @ts-ignore
     const [mataKuliah, shift, ruangan] = await Promise.all([
-      dispatch(getAllMataKuliah({ data: body })),
+      dispatch(getAllMatakuliah({ data: bodyMk })),
       dispatch(getAllShift({ data: body })),
       dispatch(getAllRuanganLaboratorium({ data: body }))
-
-      // dispatch(getAllDosen({ data: body }))
     ])
 
     if (
@@ -63,6 +71,8 @@ export default function FormJadwal(props: IFormJadwalProps) {
   useEffect(() => {
     handleGetData()
   }, [])
+
+  console.log('Data : ', data)
 
   return (
     <Grid container spacing={4}>

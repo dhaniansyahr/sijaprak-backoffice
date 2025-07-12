@@ -1,6 +1,6 @@
 import { Button } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { DialogRef } from 'src/components/shared/dialog'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
@@ -16,11 +16,33 @@ export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRe
   const [isLoading, setIsLoading] = useState(false)
 
   const isActionAllowed = useMemo(() => {
-    return ability?.can('assign_asisten', 'JADWAL')
+    return ability?.can('assign', 'JADWAL')
   }, [ability])
 
+  const handleAssign = useCallback(
+    async (assignId: string) => {
+      toast.loading('Loading...')
+
+      // @ts-ignore
+      await dispatch(assignAsistenLab({ id: assignId })).then(res => {
+        if (res?.meta?.requestStatus !== 'fulfilled') {
+          toast.dismiss()
+          toast.error(res?.payload?.response?.data?.message)
+
+          return
+        }
+
+        toast.dismiss()
+        toast.success(res?.payload?.message)
+        dispatch(setIsRefresh())
+        dialogRef?.current?.close()
+      })
+    },
+    [dispatch, dialogRef]
+  )
+
   const columns: GridColDef[] = useMemo(() => {
-    return [
+    const baseColumns = [
       {
         flex: 0.25,
         field: 'no',
@@ -62,32 +84,37 @@ export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRe
         }
       }
     ]
-  }, [])
 
-  if (isActionAllowed) {
-    columns.push({
-      flex: 0.25,
-      field: 'action',
-      headerName: 'Aksi',
-      minWidth: 160,
-      sortable: false,
-      renderCell: (params: any) => {
-        return (
-          <Can I={'assign_asisten'} a={'JADWAL'}>
-            <Button variant='contained' size='small' onClick={() => handleAssign(params?.row?.id)}>
-              Assign
-            </Button>
-          </Can>
-        )
-      }
-    })
-  }
+    if (isActionAllowed) {
+      baseColumns.push({
+        flex: 0.25,
+        field: 'action',
+        headerName: 'Aksi',
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params: any) => {
+          return (
+            <Can I={'assign'} a={'JADWAL'}>
+              <Button variant='contained' size='small' onClick={() => handleAssign(params?.row?.id)}>
+                Assign
+              </Button>
+            </Can>
+          )
+        }
+      })
+    }
 
-  const handleGetData = async () => {
+    return baseColumns
+  }, [isActionAllowed, handleAssign])
+
+  const handleGetData = useCallback(async () => {
+    if (!id) return
+
     setIsLoading(true)
 
-    // @ts-ignore
-    await dispatch(getAsistenLabByJadwalId({ data: {}, id })).then(res => {
+    try {
+      // @ts-ignore
+      const res = await dispatch(getAsistenLabByJadwalId({ id }))
       if (res?.meta?.requestStatus !== 'fulfilled') {
         setIsLoading(false)
 
@@ -96,31 +123,15 @@ export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRe
 
       setIsLoading(false)
       setData(res?.payload?.content)
-    })
-  }
-
-  const handleAssign = async (id: string) => {
-    toast.loading('Loading...')
-
-    // @ts-ignore
-    await dispatch(assignAsistenLab({ id })).then(res => {
-      if (res?.meta?.requestStatus !== 'fulfilled') {
-        toast.dismiss()
-        toast.error(res?.payload?.response?.data?.message)
-
-        return
-      }
-
-      toast.dismiss()
-      toast.success(res?.payload?.message)
-      dispatch(setIsRefresh())
-      dialogRef?.current?.close()
-    })
-  }
+    } catch (error) {
+      setIsLoading(false)
+      console.error('Error fetching data:', error)
+    }
+  }, [dispatch, id])
 
   useEffect(() => {
     handleGetData()
-  }, [id])
+  }, [handleGetData])
 
   return {
     data,

@@ -83,6 +83,7 @@ const DialogDetailRuanganLaboratorium = memo(({ dialogRef, values }: DialogDetai
   return (
     <Dialog
       fullWidth
+      ref={dialogRef}
       isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {

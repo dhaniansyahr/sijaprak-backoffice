@@ -1,6 +1,6 @@
 // React Imports
 import { Box, Button, Card, CardContent, CardHeader, TextField } from '@mui/material'
-import { lazy, Suspense, memo } from 'react'
+import { lazy, Suspense, memo, useEffect } from 'react'
 
 // Hooks & types
 import HeaderPage from 'src/components/shared/header-page'
@@ -15,8 +15,8 @@ const DialogDetailRuanganLaboratorium = lazy(() => import('../dialogs/DialogDeta
 const DialogEditRuanganLaboratorium = lazy(() => import('../dialogs/DialogEdit'))
 const DialogAssignKepalaLab = lazy(() => import('../dialogs/DialogAssignKepalaLab'))
 
-// Minimal loading fallback
-const DialogLoader = () => null
+// Loading fallback component
+const DialogLoader = () => <div style={{ display: 'none' }}>Loading dialog...</div>
 
 const TableRuangan = memo(() => {
   // Hooks
@@ -50,7 +50,10 @@ const TableRuangan = memo(() => {
                 variant='contained'
                 color='primary'
                 sx={{ mb: 2 }}
-                onClick={() => addRef.current?.open()}
+                onClick={() => {
+                  console.log('Add button clicked, ref:', addRef.current)
+                  addRef.current?.open()
+                }}
                 startIcon={<AddIcon />}
               >
                 Tambah Laboratorium

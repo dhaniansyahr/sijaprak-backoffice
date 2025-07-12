@@ -4,7 +4,7 @@ import { Box, Button, Chip, debounce, Tooltip } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import { DialogRef } from 'src/components/shared/dialog'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { getPendaftaranAsistenLab, penerimaanAsistenLab } from 'src/stores/asisten-lab/action'
 import { setIsRefresh } from 'src/stores/asisten-lab/slice'
@@ -26,6 +26,9 @@ export const useListPendaftaranAsisten = () => {
   })
 
   const debouncedSearchRef = useRef<any>(null)
+
+  const rejectRef = useRef<DialogRef>(null)
+  const [rowId, setRowId] = useState<string>('')
 
   const isActionAllowed = useMemo(() => {
     return ability?.can('create', 'PENERIMAAN_ASISTEN_LAB')
@@ -129,9 +132,10 @@ export const useListPendaftaranAsisten = () => {
                 variant='outlined'
                 color='error'
                 size='small'
-                onClick={() =>
-                  handlePenerimaanAsisten(params?.row?.id, 'DITOLAK', 'Ditolak karena tidak memenuhi kriteria')
-                }
+                onClick={() => {
+                  setRowId(params?.row?.id)
+                  rejectRef.current?.open()
+                }}
                 disabled={params?.row?.status !== 'PENDING'}
               >
                 Tolak
@@ -139,7 +143,7 @@ export const useListPendaftaranAsisten = () => {
               <Button
                 variant='contained'
                 size='small'
-                onClick={() => handlePenerimaanAsisten(params?.row?.id, 'DISETUJUI')}
+                onClick={() => handlePenerimaanAsisten(params?.row?.id)}
                 disabled={params?.row?.status !== 'PENDING'}
               >
                 Terima
@@ -192,12 +196,11 @@ export const useListPendaftaranAsisten = () => {
     setTableState(prev => ({ ...prev, isLoading: false }))
   }
 
-  const handlePenerimaanAsisten = async (id: string, action: 'DISETUJUI' | 'DITOLAK', ket?: string) => {
+  const handlePenerimaanAsisten = async (id: string) => {
     toast.loading('Loading...')
 
     const body = {
-      status: action,
-      keterangan: ket
+      status: 'DISETUJUI'
     }
 
     // @ts-ignore
@@ -244,6 +247,8 @@ export const useListPendaftaranAsisten = () => {
     columns,
     tableState,
     setTableState,
-    handleSearch
+    handleSearch,
+    rejectRef,
+    rowId
   }
 }

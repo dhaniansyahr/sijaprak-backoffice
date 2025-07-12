@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import HeaderPage from 'src/components/shared/header-page'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { absent, getAbsensi } from 'src/stores/jadwal/action'
+import { absent, getAllParticipantsAndMeetings } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
@@ -23,7 +23,7 @@ export default function AbsensiContainer() {
   const [data, setData] = useState<any>(null)
 
   const isActionAllowed = useMemo(() => {
-    return ability?.can('read', 'ABSENSI') || ability?.can('update', 'ABSENSI')
+    return ability?.can('absensi', 'JADWAL')
   }, [ability])
 
   const baseColumns = [
@@ -99,7 +99,7 @@ export default function AbsensiContainer() {
     setIsLoading(true)
 
     try {
-      const res = await dispatch(getAbsensi({ id }))
+      const res = await dispatch(getAllParticipantsAndMeetings({ id }))
       if (res.meta.requestStatus === 'fulfilled') {
         setData(res.payload.content)
       }

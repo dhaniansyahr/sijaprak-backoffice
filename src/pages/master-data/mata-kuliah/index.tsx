@@ -5,7 +5,7 @@ const MatakuliahPage = () => {
 }
 
 MatakuliahPage.acl = {
-  subject: 'MASTER_DATA',
+  subject: 'MATA_KULIAH',
   action: 'read'
 }
 

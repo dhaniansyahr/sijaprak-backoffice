@@ -76,6 +76,7 @@ const DialogAdd = ({ dialogRef }: DialogAddProps) => {
   return (
     <Dialog
       fullWidth
+      ref={dialogRef}
       isOpen={dialogRef.current?.isOpen ?? false}
       onChange={open => {
         if (!open) {
@@ -123,7 +124,7 @@ const DialogAdd = ({ dialogRef }: DialogAddProps) => {
             </Grid>
 
             <Grid item xs={12}>
-              <Box display='flex' gap={4}>
+              <Box display='flex' justifyContent={'flex-end'} gap={4}>
                 <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
                   Batal
                 </Button>
@@ -134,7 +135,7 @@ const DialogAdd = ({ dialogRef }: DialogAddProps) => {
                   type='submit'
                   variant='contained'
                   disabled={isLoading}
-                  color='error'
+                  color='primary'
                 >
                   Submit
                 </LoadingButton>
