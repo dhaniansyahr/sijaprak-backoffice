@@ -6,15 +6,15 @@ import LoginForm from 'src/libs/login/components/section/LoginForm'
 export default function LoginPage() {
   return (
     <Box sx={{ p: '0 !important', overflow: 'hidden' }}>
-      <Box minHeight={'100vh'}>
-        <Grid container sx={{ height: '100vh' }}>
+      <Box minHeight={'100vh'} padding={'16px'}>
+        <Grid container sx={{ height: '98vh' }} spacing={6}>
           <Grid item sm={6} lg={8} position={'relative'} sx={{ display: { xs: 'none', sm: 'block' } }}>
             <Image
               src={`/images/bg-login.jpg`}
               alt='Auth page background'
               width={1000}
               height={800}
-              style={{ objectFit: 'cover', width: '100%', height: '100%', position: 'absolute' }}
+              style={{ objectFit: 'cover', width: '100%', height: '100%', position: 'absolute', borderRadius: '10px' }}
             />
             <Box
               zIndex={1}
@@ -40,7 +40,7 @@ export default function LoginPage() {
                 Welcome to Informatika TMS
               </Typography>
               <Typography variant='h6' color='primary' fontWeight={400} mb={4}>
-                AI-Powered Timetable Management Sytems
+                New Systems Scheduling Informatic's Department
               </Typography>
             </Box>
           </Grid>

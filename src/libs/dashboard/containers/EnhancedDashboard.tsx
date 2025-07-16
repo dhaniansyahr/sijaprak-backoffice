@@ -36,7 +36,7 @@ import api from 'src/service/api'
 import Can from 'src/layouts/components/acl/Can'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { getAbsentNow } from 'src/stores/jadwal/action'
+import { getAbsentNow, getAllScheduleToday } from 'src/stores/jadwal/action'
 
 interface DashboardData {
   totalStudents: number
@@ -181,55 +181,6 @@ const BarChartCard = ({ title, data, height = 300 }: any) => (
   </Card>
 )
 
-// Radar Chart Component
-const RadarChartCard = ({ title, data, height = 300 }: any) => (
-  <Card>
-    <CardHeader title={title} />
-    <CardContent>
-      <ResponsiveContainer width='100%' height={height}>
-        <RadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey='subject' />
-          <PolarRadiusAxis />
-          <Radar name='Utilization' dataKey='A' stroke='#8884d8' fill='#8884d8' fillOpacity={0.6} />
-          <Tooltip content={<CustomTooltip />} />
-        </RadarChart>
-      </ResponsiveContainer>
-    </CardContent>
-  </Card>
-)
-
-// Course Hierarchy as Bar Chart (alternative to Treemap)
-const CourseHierarchyCard = ({ title, data, height = 300 }: any) => {
-  // Flatten hierarchy data for bar chart
-  const flattenedData =
-    data?.flatMap(
-      (category: any) =>
-        category.children?.map((child: any) => ({
-          name: `${category.name} - ${child.name}`,
-          value: child.size,
-          fill: child.fill
-        })) || []
-    ) || []
-
-  return (
-    <Card>
-      <CardHeader title={title} />
-      <CardContent>
-        <ResponsiveContainer width='100%' height={height}>
-          <BarChart data={flattenedData} layout='horizontal'>
-            <CartesianGrid strokeDasharray='3 3' />
-            <XAxis type='number' />
-            <YAxis dataKey='name' type='category' width={120} />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey='value' fill='#8884d8' />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  )
-}
-
 // Application Status Component
 const ApplicationStatusCard = ({ data }: any) => (
   <Card>
@@ -256,6 +207,8 @@ const ApplicationStatusCard = ({ data }: any) => (
 )
 
 const ScheduleOverview = () => {
+  const dispatch = useAppDispatch()
+
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [data, setData] = useState<any>(null)
 
@@ -277,7 +230,7 @@ const ScheduleOverview = () => {
       minWidth: 160,
       sortable: false,
       renderCell: (params: any) => {
-        return <span>{params.row?.mataKuliah?.nama ?? '-'}</span>
+        return <span>{params.row?.jadwal?.matakuliah?.nama ?? '-'}</span>
       }
     },
     {
@@ -287,7 +240,7 @@ const ScheduleOverview = () => {
       minWidth: 160,
       sortable: false,
       renderCell: (params: any) => {
-        return <span>{params.row?.dosen?.nama ?? '-'}</span>
+        return <span>{params.row?.jadwal?.dosen?.nama ?? '-'}</span>
       }
     },
     {
@@ -297,17 +250,21 @@ const ScheduleOverview = () => {
       minWidth: 160,
       sortable: false,
       renderCell: (params: any) => {
-        return <span>{params.row?.ruangan?.nama ?? '-'}</span>
+        return <span>{params.row?.jadwal?.ruangan?.nama ?? '-'}</span>
       }
     },
     {
       flex: 0.25,
-      field: 'lokasi',
-      headerName: 'Lokasi Ruangan',
+      field: 'shift',
+      headerName: 'Waktu',
       minWidth: 160,
       sortable: false,
       renderCell: (params: any) => {
-        return <span>{params.row?.ruangan?.lokasi ?? '-'}</span>
+        return (
+          <span>
+            {params.row?.jadwal?.shfit?.startTime ?? '-'} - {params.row?.jadwal?.shfit?.endTime ?? '-'}
+          </span>
+        )
       }
     }
   ]
@@ -315,53 +272,17 @@ const ScheduleOverview = () => {
   const handleGetData = async () => {
     setIsLoading(true)
 
-    setData({
-      entries: [
-        {
-          index: 1,
-          mataKuliah: {
-            nama: 'Pemrograman Web'
-          },
-          dosen: {
-            nama: 'Dr. Budi Santoso'
-          },
-          ruangan: {
-            nama: 'Lab Komputer 1',
-            lokasi: 'Gedung A Lt. 3'
-          }
-        },
-        {
-          index: 2,
-          mataKuliah: {
-            nama: 'Basis Data'
-          },
-          dosen: {
-            nama: 'Dr. Siti Aminah'
-          },
-          ruangan: {
-            nama: 'Lab Database',
-            lokasi: 'Gedung B Lt. 2'
-          }
-        },
-        {
-          index: 3,
-          mataKuliah: {
-            nama: 'Jaringan Komputer'
-          },
-          dosen: {
-            nama: 'Dr. Ahmad Wijaya'
-          },
-          ruangan: {
-            nama: 'Lab Networking',
-            lokasi: 'Gedung A Lt. 4'
-          }
-        }
-      ],
-      totalData: 3,
-      totalPages: 1
-    })
+    // @ts-ignore
+    await dispatch(getAllScheduleToday({ data: {} })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
 
-    setIsLoading(false)
+        return
+      }
+
+      setIsLoading(false)
+      setData(res.payload.content)
+    })
   }
 
   useEffect(() => {
@@ -389,10 +310,9 @@ const ScheduleOverview = () => {
       <CardContent sx={{ paddingY: '16px' }}>
         <DataGrid
           autoHeight
-          rows={data?.entries ?? []}
+          rows={data ?? []}
           columns={columns}
           hideFooter
-          getRowId={row => row.index}
           disableColumnFilter
           disableColumnMenu
           disableColumnSelector
@@ -460,55 +380,40 @@ const IncomingAbsent = () => {
       <CardContent sx={{ marginTop: '16px' }}>
         <Grid container spacing={4}>
           <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant='h6' sx={{ fontWeight: 500 }}>
-                Rekayasa Perangkat Lunak - Pertemuan Ke 1
-              </Typography>
-              <Button variant='contained'>Absen</Button>
-            </Box>
-          </Grid>
-
-          <Grid item xs={12}>
             <Grid container spacing={4}>
-              {[
-                {
-                  field: 'Mata Kuliah',
-                  value: 'Rekayasa Perangkat Lunak'
-                },
-                {
-                  field: 'Dosen Pengajar',
-                  value: 'Dosen 1'
-                },
-                {
-                  field: 'Tanggal',
-                  value: '01 Januari 2025'
-                },
-                {
-                  field: 'Ruangan',
-                  value: 'Laboratorium Rekayasa Perangkat Lunak'
-                },
-                {
-                  field: 'Waktu',
-                  value: '08:00 - 09:40 WIB'
-                },
-                {
-                  field: 'Pertemuan',
-                  value: '01'
-                }
-              ].map((item: any, index: number) => (
-                <Grid item xs={6} key={index}>
-                  <Grid container spacing={2} borderBottom={'1px solid #4c4e6438'} paddingBottom={'16px'}>
-                    <Grid item xs={4}>
-                      <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
-                        {item.field}
-                      </Typography>
+              {data?.length > 0 ? (
+                data?.map((item: any, index: number) => (
+                  <>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant='h6' sx={{ fontWeight: 500 }}>
+                          {item?.jadwal?.matakuliah?.nama || '-'}
+                        </Typography>
+                        <Button variant='contained'>Absen</Button>
+                      </Box>
                     </Grid>
-                    <Grid item xs={8}>
-                      <Typography variant='body1'>{item.value}</Typography>
+
+                    {/* <Grid item xs={6} key={index}>
+                    <Grid container spacing={2} borderBottom={'1px solid #4c4e6438'} paddingBottom={'16px'}>
+                      <Grid item xs={4}>
+                        <Typography variant='body1' sx={{ fontWeight: 'bold' }}>
+                          {item.field}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8}>
+                        <Typography variant='body1'>{item.value}</Typography>
+                      </Grid>
                     </Grid>
-                  </Grid>
+                  </Grid> */}
+                  </>
+                ))
+              ) : (
+                <Grid item xs={12}>
+                  <Typography variant='body1' sx={{ textAlign: 'center' }}>
+                    Belum ada jadwal hari ini!
+                  </Typography>
                 </Grid>
-              ))}
+              )}
             </Grid>
           </Grid>
         </Grid>
@@ -567,12 +472,8 @@ export default function EnhancedDashboard() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant='h4' sx={{ mb: 3, fontWeight: 'bold' }}>
-        Dashboard Overview
-      </Typography>
-
       {/* Stats Cards */}
-      <Can I='read' a='DASHBOARD'>
+      <Can I='analytics' a='DASHBOARD'>
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatsCard
@@ -616,84 +517,20 @@ export default function EnhancedDashboard() {
       {/* Charts Grid */}
       <Grid container spacing={3}>
         {/* Students by Semester */}
-        <Can I='read' a='PENDAFTARAN_ASISTEN_LAB'>
+        <Can I='analytics' a='DASHBOARD'>
           <Grid item xs={12}>
             <ApplicationStatusCard data={dashboardData.assistantApplicationStatus} />
           </Grid>
         </Can>
 
-        <Grid item xs={12}>
-          <ScheduleOverview />
-        </Grid>
-
-        <Grid item xs={12}>
-          <IncomingAbsent />
-        </Grid>
-
-        {/* <Can I='read' a='MAHASISWA'>
-          <Grid item xs={12} md={6}>
-            <PieChartCard title='Students by Semester' data={dashboardData.studentsBySemester} />
-          </Grid>
-        </Can> */}
-
-        {/* Courses by Bidang Minat */}
-        {/* <Can I='read' a='MASTER_DATA'>
-          <Grid item xs={12} md={6}>
-            <PieChartCard title='Courses by Bidang Minat' data={dashboardData.coursesByBidangMinat} />
-          </Grid>
-        </Can> */}
-
-        {/* Course Type Distribution */}
-        {/* <Can I='read' a='MASTER_DATA'>
-          <Grid item xs={12} md={6}>
-            <PieChartCard title='Course Type Distribution' data={dashboardData.courseTypeDistribution} />
-          </Grid>
-        </Can> */}
-
-        {/* Application Status */}
-
-        {/* Monthly Enrollment Trend */}
-        {/* <Can I='read' a='MAHASISWA'>
-          <Grid item xs={12} md={6}>
-            <LineChartCard
-              title='Monthly Enrollment Trend'
-              data={dashboardData.monthlyEnrollmentTrend}
-              dataKey='value'
-            />
-          </Grid>
-        </Can> */}
-
-        {/* Assistant Applications Trend */}
-        {/* <Can I='read' a='PENDAFTARAN_ASISTEN_LAB'>
-          <Grid item xs={12} md={6}>
-            <LineChartCard
-              title='Assistant Applications Trend'
-              data={dashboardData.assistantApplicationsTrend}
-              dataKey='value'
-            />
-          </Grid>
-        </Can> */}
-
-        {/* Weekly Schedule Density */}
-        {/* <Can I='read' a='JADWAL'>
+        <Can I='absensi' a='DASHBOARD'>
           <Grid item xs={12}>
-            <BarChartCard title='Weekly Schedule Density' data={dashboardData.weeklyScheduleDensity} height={400} />
+            <ScheduleOverview />
           </Grid>
-        </Can> */}
-
-        {/* Room Utilization Radar */}
-        {/* <Can I='read' a='RUANGAN'>
-          <Grid item xs={12} md={6}>
-            <RadarChartCard title='Room Utilization' data={dashboardData.roomUtilizationRadar} />
+          <Grid item xs={12}>
+            <IncomingAbsent />
           </Grid>
-        </Can> */}
-
-        {/* Course Hierarchy */}
-        {/* <Can I='read' a='MASTER_DATA'>
-          <Grid item xs={12} md={6}>
-            <CourseHierarchyCard title='Course Hierarchy' data={dashboardData.courseHierarchy} />
-          </Grid>
-        </Can> */}
+        </Can>
       </Grid>
     </Box>
   )

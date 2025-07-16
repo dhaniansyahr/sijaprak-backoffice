@@ -130,3 +130,16 @@ export const getAbsentNow = createAsyncThunk(
     }
   }
 )
+
+export const getAllScheduleToday = createAsyncThunk(
+  'get/jadwal/schedule-today',
+  async ({ data }: { data: any }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/jadwal/today`, data)
+
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error)
+    }
+  }
+)
