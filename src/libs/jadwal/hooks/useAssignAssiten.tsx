@@ -2,13 +2,13 @@ import { Button } from '@mui/material'
 import { GridColDef } from '@mui/x-data-grid'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
-import { DialogRef } from 'src/components/shared/dialog'
+import { IDialogRef } from 'src/components/shared/dialog'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { assignAsistenLab, getAsistenLabByJadwalId } from 'src/stores/asisten-lab/action'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { useAppDispatch } from 'src/utils/dispatch'
 
-export function useAssignAsisten(id: string, dialogRef: React.RefObject<DialogRef>) {
+export function useAssignAsisten(id: string, dialogRef: React.RefObject<IDialogRef>) {
   const dispatch = useAppDispatch()
   const ability = useContext(AbilityContext)
 
