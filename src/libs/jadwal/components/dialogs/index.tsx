@@ -3,7 +3,7 @@ import DialogAssignAsistenLab from './DialogAssignAsistenLab'
 import { IDialogRef } from 'src/components/shared/dialog'
 import { useForm, FormProvider } from 'react-hook-form'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { createJadwal } from 'src/stores/jadwal/action'
+import { createJadwal, updateJadwal } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 
@@ -36,6 +36,11 @@ export interface ICreateJadwal {
   kelas: string
   isOverride: boolean
 }
+export interface IUpdateJadwal {
+  hari: string
+  shiftId: string
+  isOverride: boolean
+}
 
 const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, setId }, ref) => {
   const dispatch = useAppDispatch()
@@ -47,6 +52,14 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
       ruanganId: '',
       matakuliahId: '',
       kelas: '',
+      isOverride: false
+    }
+  })
+
+  const methodsEdit = useForm<IUpdateJadwal>({
+    defaultValues: {
+      hari: '',
+      shiftId: '',
       isOverride: false
     }
   })
@@ -64,10 +77,26 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
 
   useImperativeHandle(ref, () => ({
     openAddDialog: () => {
+      // Reset form sebelum membuka dialog
+      methods.reset({
+        hari: '',
+        shiftId: '',
+        ruanganId: '',
+        matakuliahId: '',
+        kelas: '',
+        isOverride: false
+      })
       dialogAddRef.current?.open()
     },
     openEditDialog: id => {
       setId(id)
+
+      // Reset form edit sebelum membuka dialog
+      methodsEdit.reset({
+        hari: '',
+        shiftId: '',
+        isOverride: false
+      })
       dialogEditRef.current?.open()
     },
     openAssignAsisten: id => {
@@ -105,6 +134,7 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
         }
 
         toast.error(res?.payload?.response?.data?.message)
+        setIsLoading(false)
 
         return
       }
@@ -118,30 +148,71 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
     })
   })
 
+  const onSubmitEdit = methodsEdit.handleSubmit(async (data: any) => {
+    setIsLoading(true)
+
+    const body = Object.assign({}, data)
+
+    // @ts-ignore
+    await dispatch(updateJadwal({ data: body, id })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        if (res.payload?.response?.status === 409 || res.payload?.status === 409) {
+          setIsLoading(false)
+
+          const err = res?.payload?.response?.data?.errors
+          setConflictData(err)
+
+          onOpenConflictDialog()
+
+          return
+        }
+
+        toast.error(res?.payload?.response?.data?.message)
+        setIsLoading(false)
+
+        return
+      }
+
+      toast.success(res?.payload?.message)
+      setIsLoading(false)
+      dispatch(setIsRefresh())
+      dialogEditRef.current?.close()
+      dialogConflictRef?.current?.close()
+    })
+  })
+
   return (
-    <FormProvider {...methods}>
-      <DialogAdd dialogRef={dialogAddRef} onSubmit={() => dialogConfirmationRef.current?.open()} />
+    <>
+      <FormProvider {...methods}>
+        <DialogAdd dialogRef={dialogAddRef} onSubmit={() => dialogConfirmationRef.current?.open()} />
+        <DialogConfirmation dialogRef={dialogConfirmationRef} onConfirm={onSubmit} isLoading={isLoading} />
+      </FormProvider>
+
+      <FormProvider {...methodsEdit}>
+        <DialogEdit dialogRef={dialogEditRef} id={id} onSubmit={onSubmitEdit} isLoading={isLoading} />
+      </FormProvider>
 
       <DialogAssignAsistenLab dialogRef={dialogAsistenRef} id={id} />
-
-      <DialogEdit dialogRef={dialogEditRef} id={id} />
 
       <DialogEditPertemuan dialogRef={dialogEditPertemuanRef} id={id} />
 
       <DialogUpload dialogRef={dialogBulkUploadRef} />
 
-      <DialogConfirmation dialogRef={dialogConfirmationRef} onConfirm={onSubmit} isLoading={isLoading} />
-
       <DialogConflict
         dialogRef={dialogConflictRef}
         onSubmit={() => {
-          methods.setValue('isOverride', true)
-          onSubmit()
+          if (dialogAddRef.current?.isOpen) {
+            methods.setValue('isOverride', true)
+            onSubmit()
+          } else {
+            methodsEdit.setValue('isOverride', true)
+            onSubmitEdit()
+          }
         }}
         isLoading={isLoading}
         errors={conflictData}
       />
-    </FormProvider>
+    </>
   )
 })
 

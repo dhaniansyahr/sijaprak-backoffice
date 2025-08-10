@@ -9,21 +9,21 @@ import toast from 'react-hot-toast'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
-import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
-import { createRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
+import { setIsRefresh } from 'src/stores/users/slice'
 
 // Components
 import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 import { Autocomplete, FormHelperText, Grid, TextField } from '@mui/material'
 import { InputMask } from 'src/components/shared/input/InputMask'
 import { getAllRole } from 'src/stores/role/action'
+import { getUser, updateUser } from 'src/stores/users/action'
 
 interface IDialogEditProps {
   dialogRef: React.RefObject<IDialogRef>
-  values: any
+  id: string
 }
 
-const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
+const DialogEdit = memo(({ dialogRef, id }: IDialogEditProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -31,13 +31,7 @@ const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
   const [roles, setRoles] = useState<any[]>([])
   const [isLoadRole, setIsLoadRole] = useState(false)
 
-  const { control, reset, handleSubmit, setError } = useForm<any>({
-    defaultValues: {
-      name: values?.name || '',
-      email: values?.email || '',
-      roleId: values?.roleId || ''
-    }
-  })
+  const { control, reset, handleSubmit, setError, setValue } = useForm<any>()
 
   const handleClose = useCallback(() => {
     reset()
@@ -50,7 +44,7 @@ const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
     setIsLoading(true)
 
     // @ts-ignore
-    const res = await dispatch(createRuanganLaboratorium({ data: value }))
+    await dispatch(updateUser({ data: value, id }))
       .then(res => {
         if (res.meta.requestStatus !== 'fulfilled') {
           const errors = res.payload.response.data?.errors || []
@@ -92,23 +86,44 @@ const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
       .finally(() => setIsLoadRole(false))
   }
 
+  const handleGetDetail = async () => {
+    setIsLoading(true)
+
+    // @ts-ignore
+    await dispatch(getUser({ id })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        setIsLoading(false)
+
+        return
+      }
+
+      const content = res?.payload?.content
+
+      setIsLoading(false)
+      setValue('fullName', content?.fullName)
+      setValue('email', content?.email)
+      setValue('userLevelId', content?.userLevelId)
+    })
+  }
+
   useEffect(() => {
     handleGetAllRole()
+    handleGetDetail()
   }, [])
 
   return (
     <Dialog ref={dialogRef} title='Edit Pengguna' onSubmit={onSubmit} isLoading={isLoading}>
       <Grid container spacing={4}>
-        <Grid item xs={12} sx={{ paddingBottom: '8px' }}>
+        <Grid item xs={12}>
           <Controller
             control={control}
-            name='name'
+            name='fullName'
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
                 fullWidth
-                label='Nama'
-                placeholder='Masukan Nama User'
+                label='Nama Lengkap'
+                placeholder='Masukan Nama Lengkap'
                 error={!!error}
                 helperText={error?.message}
               />
@@ -119,7 +134,7 @@ const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
           />
         </Grid>
 
-        <Grid item xs={12} sx={{ paddingBottom: '8px' }}>
+        <Grid item xs={12}>
           <Controller
             control={control}
             name='email'
@@ -142,7 +157,7 @@ const DialogEdit = memo(({ dialogRef, values }: IDialogEditProps) => {
         <Grid item xs={12}>
           <Controller
             control={control}
-            name='roleId'
+            name='userLevelId'
             render={({ field, fieldState: { error } }) => (
               <Autocomplete
                 options={roles}

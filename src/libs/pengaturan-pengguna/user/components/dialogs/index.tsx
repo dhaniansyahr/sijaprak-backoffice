@@ -1,26 +1,26 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { IDialogRef } from 'src/components/shared/dialog'
-import { deleteRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
 import { setIsRefresh } from 'src/stores/role/slice'
 import { useAppDispatch } from 'src/utils/dispatch'
 import DialogAdd from './DialogAdd'
 import DialogEdit from './DialogEdit'
 import DialogConfirmation from 'src/components/shared/confirmation-dialog'
+import { deleteUser } from 'src/stores/users/action'
 
 export interface IDialogsUserRef {
   openDialogAdd: () => void
-  openDialogEdit: (values: any) => void
-  openDialogDelete: (values: any) => void
+  openDialogEdit: (id: string) => void
+  openDialogDelete: (id: string) => void
 }
 
 interface IDialogsUserProps {
-  values: any
-  setValues: (v: any) => void
+  id: string
+  setId: (v: string) => void
   ref?: React.RefObject<IDialogsUserRef>
 }
 
-const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ values, setValues }, ref) => {
+const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ id, setId }, ref) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -33,12 +33,12 @@ const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ values, se
     openDialogAdd: () => {
       dialogAddRef.current?.open()
     },
-    openDialogDelete: values => {
-      setValues(values)
+    openDialogDelete: id => {
+      setId(id)
       dialogDeleteRef.current?.open()
     },
-    openDialogEdit: values => {
-      setValues(values)
+    openDialogEdit: id => {
+      setId(id)
       dialogEditRef.current?.open()
     }
   }))
@@ -48,12 +48,12 @@ const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ values, se
 
     const body: any = {
       params: {
-        ids: JSON.stringify([values?.id])
+        ids: JSON.stringify([id])
       }
     }
 
     // @ts-ignore
-    await dispatch(deleteRuanganLaboratorium({ data: body }))
+    await dispatch(deleteUser({ data: body }))
       .then(res => {
         if (res.meta.requestStatus !== 'fulfilled') {
           toast.error(res?.payload?.response?.data?.message)
@@ -72,7 +72,7 @@ const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ values, se
     <>
       <DialogAdd dialogRef={dialogAddRef} />
 
-      <DialogEdit dialogRef={dialogAddRef} values={values} />
+      <DialogEdit dialogRef={dialogEditRef} id={id} />
 
       <DialogConfirmation
         dialogRef={dialogDeleteRef}
@@ -84,3 +84,5 @@ const DialogsUser = forwardRef<IDialogsUserRef, IDialogsUserProps>(({ values, se
     </>
   )
 })
+
+export default DialogsUser

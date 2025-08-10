@@ -9,6 +9,7 @@ import mahasiswa from './master-data/mahasiswa/slice'
 import dosen from './master-data/dosen/slice'
 import matakuliah from './master-data/mata-kuliah/slice'
 import role from './role/slice'
+import user from './users/slice'
 
 export const store = configureStore({
   reducer: {
@@ -20,7 +21,8 @@ export const store = configureStore({
     mahasiswa,
     dosen,
     matakuliah,
-    role
+    role,
+    user
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

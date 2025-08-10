@@ -1,9 +1,9 @@
-import { Card, CardContent, CircularProgress, Grid, Skeleton, Typography } from '@mui/material'
+import { Alert, Card, CardContent, CircularProgress, Grid, Skeleton, Typography } from '@mui/material'
 import { Fragment, memo, useEffect, useState } from 'react'
 import { NextRouter, useRouter } from 'next/router'
 import { useAppDispatch } from 'src/utils/dispatch'
 import HeaderPage from 'src/components/shared/header-page'
-import { getAllMeetings, getJadwal } from 'src/stores/jadwal/action'
+import { getJadwal } from 'src/stores/jadwal/action'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import moment from 'moment'
 
@@ -234,6 +234,13 @@ export default function DetailJadwal() {
 
       <CardContent sx={{ padding: '24px !important' }}>
         <Grid container spacing={4}>
+          {state?.data?.OverrideData?.length > 0 &&
+            state?.data?.OverrideData?.map((item: any) => (
+              <Grid item xs={12} key={item?.id}>
+                <Alert severity='error'>{item?.message || '-'}</Alert>
+              </Grid>
+            ))}
+
           <DetailValue data={state?.data} isLoading={state?.isLoading} />
 
           <Grid item xs={12}>

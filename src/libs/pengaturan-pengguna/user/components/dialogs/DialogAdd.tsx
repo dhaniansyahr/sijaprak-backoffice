@@ -2,15 +2,14 @@
 import React, { useState, memo, useCallback, useEffect } from 'react'
 
 // Third Party
-import { useForm, SubmitHandler, Controller } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
 // Services & Types
 import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
-import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
-import { createRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
+import { setIsRefresh } from 'src/stores/users/slice'
 
 // Components
 import Dialog, { IDialogRef } from 'src/components/shared/dialog'
@@ -18,6 +17,7 @@ import { Autocomplete, FormHelperText, Grid, IconButton, InputAdornment, TextFie
 import { InputMask } from 'src/components/shared/input/InputMask'
 import { Icon } from '@iconify/react'
 import { getAllRole } from 'src/stores/role/action'
+import { createUser } from 'src/stores/users/action'
 
 interface DialogCreateProps {
   dialogRef: React.RefObject<IDialogRef>
@@ -32,12 +32,7 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
   const [roles, setRoles] = useState<any[]>([])
   const [isLoadRole, setIsLoadRole] = useState(false)
 
-  const { control, reset, handleSubmit, setError } = useForm<any>({
-    defaultValues: {
-      nama: '',
-      lokasi: ''
-    }
-  })
+  const { control, reset, handleSubmit, setError } = useForm()
 
   const handleClose = useCallback(() => {
     reset()
@@ -50,7 +45,7 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
     setIsLoading(true)
 
     // @ts-ignore
-    const res = await dispatch(createRuanganLaboratorium({ data: value }))
+    await dispatch(createUser({ data: value }))
       .then(res => {
         if (res.meta.requestStatus !== 'fulfilled') {
           const errors = res.payload.response.data?.errors || []
@@ -67,7 +62,7 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
         toast.success(res.payload.message)
         handleClose()
       })
-      .finally(() => setIsLoading(true))
+      .finally(() => setIsLoading(false))
   })
 
   const handleGetAllRole = async () => {
@@ -99,10 +94,10 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
   return (
     <Dialog ref={dialogRef} title='Tambah Pengguna Baru' onSubmit={onSubmit} isLoading={isLoading}>
       <Grid container spacing={4}>
-        <Grid item xs={12} sx={{ paddingBottom: '8px' }}>
+        <Grid item xs={12}>
           <Controller
             control={control}
-            name='name'
+            name='fullName'
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
@@ -119,7 +114,7 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
           />
         </Grid>
 
-        <Grid item xs={12} sx={{ paddingBottom: '8px' }}>
+        <Grid item xs={12}>
           <Controller
             control={control}
             name='email'
@@ -142,7 +137,7 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
         <Grid item xs={12}>
           <Controller
             control={control}
-            name='roleId'
+            name='userLevelId'
             render={({ field, fieldState: { error } }) => (
               <Autocomplete
                 options={roles}

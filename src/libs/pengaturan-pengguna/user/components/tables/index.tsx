@@ -2,16 +2,16 @@ import { Icon } from '@iconify/react'
 import { Box, Button, Card, CardContent, CardHeader, debounce, TextField } from '@mui/material'
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { GridColDef } from '@mui/x-data-grid'
-import Can from 'src/layouts/components/acl/Can'
 import { createColumns } from './column'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { getAllRole } from 'src/stores/role/action'
 import DataTable from 'src/components/shared/table'
-import { IDialogsUserRef } from '../dialogs'
+import DialogsUser, { IDialogsUserRef } from '../dialogs'
 import HeaderPage from 'src/components/shared/header-page'
+import { getAllUsers } from 'src/stores/users/action'
 
 export default function TablePengguna() {
   const [search, setSearch] = useState('')
+  const [id, setId] = useState('')
 
   const handleSearch = useCallback(
     debounce((query: string) => {
@@ -23,8 +23,8 @@ export default function TablePengguna() {
   const dialogdRef = useRef<IDialogsUserRef>(null)
 
   const columns = createColumns({
-    onEdit: (v: any) => dialogdRef.current?.openDialogEdit(v),
-    onDelete: (v: any) => dialogdRef.current?.openDialogDelete(v)
+    onEdit: (id: string) => dialogdRef.current?.openDialogEdit(id),
+    onDelete: (id: string) => dialogdRef.current?.openDialogDelete(id)
   })
 
   const onOpenDialogAdd = () => dialogdRef.current?.openDialogAdd()
@@ -75,13 +75,15 @@ export default function TablePengguna() {
       <CardContent>
         <UserEntries search={search} columns={columns} />
       </CardContent>
+
+      <DialogsUser ref={dialogdRef} id={id} setId={setId} />
     </Card>
   )
 }
 
 const UserEntries = memo(({ search, columns }: { search: string; columns: GridColDef[] }) => {
   const dispatch = useAppDispatch()
-  const { isRefresh } = useAppSelector(state => state.ruanganLaboratorium)
+  const { isRefresh } = useAppSelector(state => state.user)
 
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<any>(null)
@@ -96,7 +98,8 @@ const UserEntries = memo(({ search, columns }: { search: string; columns: GridCo
         page: isPagination ? page : 1,
         rows: rows,
         searchFilters: {
-          nama: search
+          fullName: search,
+          email: search
         }
       }
     }
@@ -104,7 +107,7 @@ const UserEntries = memo(({ search, columns }: { search: string; columns: GridCo
     if (!search || search === '') delete body.params.searchFilters
 
     // @ts-ignore
-    await dispatch(getAllRole({ data: body }))
+    await dispatch(getAllUsers({ data: body }))
       .then((res: any) => {
         if (
           !(res.payload.content?.entries ?? []).some((obj: any) =>

@@ -1,30 +1,30 @@
 import { Autocomplete, TextField } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import moment from 'moment'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import toast from 'react-hot-toast'
+import { Controller, useFormContext } from 'react-hook-form'
 import Dialog, { IDialogRef } from 'src/components/shared/dialog'
-import { updateJadwal, updateMeeting } from 'src/stores/jadwal/action'
-import { setIsRefresh } from 'src/stores/jadwal/slice'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { hariOptions } from './DialogAdd'
 import { getAllShift } from 'src/stores/master-data/shift/action'
+import { IUpdateJadwal } from '.'
+import toast from 'react-hot-toast'
+import { getJadwal } from 'src/stores/jadwal/action'
 
 interface IDialogProps {
   dialogRef: React.RefObject<IDialogRef>
   id: string
+  onSubmit: () => void
+  isLoading: boolean
 }
 
-const DialogEdit = ({ dialogRef, id }: IDialogProps) => {
+const DialogEdit = ({ dialogRef, id, onSubmit, isLoading }: IDialogProps) => {
   const dispatch = useAppDispatch()
 
-  const { control, handleSubmit, setError } = useForm()
-
-  const [isLoading, setIsLoading] = useState(false)
+  const { control, setValue, reset } = useFormContext<IUpdateJadwal>()
 
   const [shifts, setShifts] = useState<any>(null)
   const [isLoadShift, setIsLoadShift] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(false)
 
   const handleGetShift = async () => {
     setIsLoadShift(true)
@@ -39,6 +39,7 @@ const DialogEdit = ({ dialogRef, id }: IDialogProps) => {
     // @ts-ignore
     await dispatch(getAllShift({ data: body })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
+        toast.error(res?.payload?.response?.data?.message)
         setIsLoadShift(false)
 
         return
@@ -49,42 +50,51 @@ const DialogEdit = ({ dialogRef, id }: IDialogProps) => {
     })
   }
 
-  const onSubmit = handleSubmit(async data => {
-    setIsLoading(true)
+  const handleGetJadwalData = async () => {
+    if (!id) return
 
-    const body = Object.assign({}, data)
+    setIsLoadingData(true)
 
     // @ts-ignore
-    await dispatch(updateJadwal({ data: body, id })).then(res => {
+    await dispatch(getJadwal({ id })).then(res => {
       if (res.meta.requestStatus !== 'fulfilled') {
-        setIsLoading(false)
-
-        const errors = res.payload.response.data?.errors || []
-
-        errors.forEach((error: any) => {
-          setError(error.field, { message: error.message })
-        })
-
-        toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
+        toast.error(res?.payload?.response?.data?.message)
+        setIsLoadingData(false)
 
         return
       }
 
-      setIsLoading(false)
-      toast.success(res.payload.message)
-      dialogRef.current?.close()
-      dispatch(setIsRefresh())
+      const jadwalData = res.payload.content
+
+      // Populate form dengan data yang akan diedit
+      setValue('hari', jadwalData.hari)
+      setValue('shiftId', jadwalData.shiftId)
+      setValue('isOverride', false)
+
+      setIsLoadingData(false)
     })
-  })
+  }
 
   useEffect(() => {
-    if (id) {
+    if (id && dialogRef.current?.isOpen) {
       handleGetShift()
+      handleGetJadwalData()
     }
-  }, [id])
+  }, [id, dialogRef.current?.isOpen])
+
+  // Reset form ketika dialog ditutup
+  useEffect(() => {
+    if (!dialogRef.current?.isOpen) {
+      reset({
+        hari: '',
+        shiftId: '',
+        isOverride: false
+      })
+    }
+  }, [dialogRef.current?.isOpen, reset])
 
   return (
-    <Dialog ref={dialogRef} title='Edit Jadwal' onSubmit={onSubmit} isLoading={isLoading}>
+    <Dialog ref={dialogRef} title='Edit Jadwal' onSubmit={onSubmit} isLoading={isLoading || isLoadingData}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Controller
@@ -99,6 +109,7 @@ const DialogEdit = ({ dialogRef, id }: IDialogProps) => {
                 onChange={(_, value) => {
                   field.onChange(value)
                 }}
+                loading={isLoadingData}
               />
             )}
           />
@@ -110,7 +121,7 @@ const DialogEdit = ({ dialogRef, id }: IDialogProps) => {
             name='shiftId'
             render={({ field }) => (
               <Autocomplete
-                loading={isLoadShift}
+                loading={isLoadShift || isLoadingData}
                 options={shifts || []}
                 getOptionLabel={(option: any) => `${option?.startTime} - ${option?.endTime}`}
                 renderInput={params => <TextField {...params} label='Shift' placeholder='Pilih Shift' />}
