@@ -27,7 +27,7 @@ const HeaderPage = (props: IHeaderPageProps) => {
               <Icon icon='meteor-icons:arrow-left' />
             </IconButton>
           )}
-          <Typography variant='h4' fontWeight={500}>
+          <Typography variant='h5' fontWeight={500}>
             {title}
           </Typography>
         </Box>

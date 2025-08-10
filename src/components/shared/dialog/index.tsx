@@ -1,117 +1,196 @@
-import React from 'react'
-import { Dialog as MuiDialog, DialogContent, DialogActions, useTheme, useMediaQuery } from '@mui/material'
-import TransitionDialog from './dialog-transition'
-import HeaderDialog from './dialog-header'
+import React, { forwardRef, ReactElement, Ref, useCallback, useImperativeHandle, useState } from 'react'
+import {
+  Dialog as MuiDialog,
+  DialogContent,
+  Box,
+  CircularProgress,
+  Typography,
+  IconButton,
+  DialogProps,
+  Fade,
+  FadeProps,
+  Grid,
+  Button,
+  Divider,
+  DialogTitle
+} from '@mui/material'
+import { Icon } from '@iconify/react'
+import { LoadingButton } from '@mui/lab'
 
-// Transition component for smooth dialog animation
-const Transition = TransitionDialog
-
-export interface DialogProps {
+export interface IDialogProps extends Omit<Partial<DialogProps>, 'children' | 'open' | 'onClose' | 'onChange'> {
   isOpen?: boolean
   onChange?: (value: boolean) => void
-  children: (close: () => void) => React.ReactNode
-  title?: React.ReactNode
-  footer?: (close: () => void) => React.ReactNode
-  withClose?: boolean
-  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false
-  fullWidth?: boolean
-  fullScreen?: boolean
-  disableBackdropClick?: boolean
-  disableEscapeKeyDown?: boolean
+  children: React.ReactNode
+  title?: string
+  onClose?: () => void
+  isLoading?: boolean
+  className?: string
+  customAction?: React.ReactNode
+  onSubmit?: () => void
 }
 
-export type DialogRef = {
+export interface IDialogRef {
   open: () => void
   close: () => void
-  isOpen?: boolean
+  isOpen: boolean
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Dialog = React.forwardRef<DialogRef, DialogProps>((props, ref) => {
-  const {
-    onChange,
-    children,
-    title,
-    footer,
-    withClose = true,
-    maxWidth = 'sm',
-    fullWidth = true,
-    fullScreen = false,
-    disableBackdropClick = false,
-    disableEscapeKeyDown = false,
-    ...rest
-  } = props
+const Transition = forwardRef(function Transition(
+  props: FadeProps & { children?: ReactElement<any, any> },
+  ref: Ref<unknown>
+) {
+  return <Fade ref={ref} {...props} />
+})
 
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const [isOpen, setIsOpen] = React.useState(props.isOpen || false)
+const Dialog = forwardRef<IDialogRef, IDialogProps>(
+  (
+    {
+      isOpen: controlledIsOpen,
+      onChange,
+      children,
+      title,
+      onClose,
+      onSubmit,
+      isLoading,
+      className,
+      customAction,
+      ...props
+    },
+    ref
+  ) => {
+    const [internalIsOpen, setInternalIsOpen] = useState(false)
 
-  const open = React.useCallback(() => setIsOpen(true), [])
-  const close = React.useCallback(() => setIsOpen(false), [])
-
-  React.useImperativeHandle(ref, () => ({
-    open,
-    close,
-    isOpen
-  }))
-
-  React.useEffect(() => {
-    if (typeof props.isOpen === 'boolean') {
-      setIsOpen(props.isOpen)
-    }
-  }, [props.isOpen])
-
-  React.useEffect(() => {
-    onChange?.(isOpen)
-  }, [isOpen, onChange])
-
-  const handleClose = (_: any, reason: string) => {
-    if (disableBackdropClick && reason === 'backdropClick') return
-    if (disableEscapeKeyDown && reason === 'escapeKeyDown') return
-    close()
-  }
-
-  const haveHeader = withClose || title
-
-  return (
-    <MuiDialog
-      open={isOpen}
-      onClose={handleClose}
-      TransitionComponent={Transition}
-      maxWidth={maxWidth}
-      fullWidth={fullWidth}
-      fullScreen={fullScreen || isMobile}
-      PaperProps={{
-        sx: {
-          borderRadius: '0px',
-          boxShadow: theme.shadows[10]
+    // Use controlled state if provided, otherwise use internal state
+    const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen
+    const setIsOpen = useCallback(
+      (value: React.SetStateAction<boolean>) => {
+        if (controlledIsOpen !== undefined) {
+          // For controlled mode, we only support boolean values
+          const newValue = typeof value === 'function' ? value(controlledIsOpen) : value
+          onChange?.(newValue)
+        } else {
+          // For uncontrolled mode, use the internal setter
+          setInternalIsOpen(value)
         }
-      }}
-      {...rest}
-    >
-      {haveHeader && <HeaderDialog onClose={() => close()} title={title as string} />}
+      },
+      [controlledIsOpen, onChange]
+    )
 
-      <DialogContent
-        sx={{ pb: 6, px: { xs: 8, sm: 10 }, pt: { xs: 8, sm: 12.5 }, position: 'relative' }}
-        style={{ paddingTop: '5px' }}
+    const open = useCallback(() => setIsOpen(true), [setIsOpen])
+    const close = useCallback(() => setIsOpen(false), [setIsOpen])
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        open,
+        close,
+        isOpen,
+        setIsOpen
+      }),
+      [open, close, isOpen, setIsOpen]
+    )
+
+    return (
+      <MuiDialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        fullWidth
+        maxWidth='md'
+        scroll='body'
+        TransitionComponent={Transition}
+        PaperProps={{
+          sx: {
+            borderRadius: '0px'
+          }
+        }}
+        {...props}
       >
-        {children(close)}
-      </DialogContent>
-
-      {footer && (
-        <DialogActions
+        <DialogTitle
           sx={{
-            padding: theme.spacing(2, 3, 3, 3),
-            borderTop: `1px solid ${theme.palette.divider}`,
-            gap: theme.spacing(2),
-            paddingTop: '8px !important'
+            mb: 6,
+            px: '20px',
+            backgroundColor: 'primary.dark',
+            display: 'flex',
+            justifyContent: title !== '' || title ? 'space-between' : 'end',
+            alignItems: 'center'
           }}
         >
-          {footer(close)}
-        </DialogActions>
-      )}
-    </MuiDialog>
-  )
-})
+          {title && (
+            <Typography variant='h5' color={'white'}>
+              {title}
+            </Typography>
+          )}
+
+          <IconButton onClick={close}>
+            <Icon icon='material-symbols:close' color='white' />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent
+          sx={{
+            padding: '20px',
+            backgroundColor: 'transparent'
+          }}
+        >
+          {isLoading ? (
+            <Box
+              sx={{
+                display: 'flex',
+                height: '128px',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <CircularProgress size={40} />
+            </Box>
+          ) : (
+            <form
+              onSubmit={e => {
+                e.preventDefault()
+                onSubmit?.()
+              }}
+            >
+              <Box sx={{ padding: '16px' }}>
+                <Grid container spacing={4}>
+                  <Grid item xs={12}>
+                    {children}
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Divider />
+                  </Grid>
+
+                  {customAction ? (
+                    customAction
+                  ) : (
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+                        <Button variant='outlined' color='secondary' type='button' onClick={close} disabled={isLoading}>
+                          Batal
+                        </Button>
+                        <LoadingButton
+                          variant='contained'
+                          color='primary'
+                          type='submit'
+                          loading={isLoading}
+                          loadingIndicator={<CircularProgress />}
+                          disabled={isLoading}
+                        >
+                          Submit
+                        </LoadingButton>
+                      </Box>
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+            </form>
+          )}
+        </DialogContent>
+      </MuiDialog>
+    )
+  }
+)
 
 Dialog.displayName = 'Dialog'
 

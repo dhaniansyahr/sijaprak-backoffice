@@ -39,6 +39,7 @@ const MainContentWrapper = styled(Box)<BoxProps>({
 const ContentWrapper = styled('main')(({ theme }) => ({
   flexGrow: 1,
   width: '100%',
+  backgroundColor: '#F4F4F4',
   padding: theme.spacing(6),
   transition: 'padding .25s ease-in-out',
   [theme.breakpoints.down('sm')]: {
@@ -109,10 +110,9 @@ const VerticalLayout = (props: LayoutProps) => {
               }),
               ...(contentWidth === 'boxed' && {
                 mx: 'auto',
-                backgroundColor: hexToRGBA('#4C4E64', 0.12)
-
-                // '@media (min-width:1440px)': { maxWidth: 1440 },
-                // '@media (min-width:1200px)': { maxWidth: '100%' }
+                backgroundColor: hexToRGBA('#4C4E64', 0.12),
+                '@media (min-width:1440px)': { maxWidth: 1440 },
+                '@media (min-width:1200px)': { maxWidth: '100%' }
               })
             }}
           >

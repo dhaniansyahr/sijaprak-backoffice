@@ -17,7 +17,9 @@ const DataGrid = () => {
           paddingLeft: `${theme.spacing(3.25)} !important`
         }),
         columnHeaders: ({ theme }: OwnerStateThemeType) => ({
-          backgroundColor: theme.palette.customColors.tableHeaderBg
+          backgroundColor: theme.palette.customColors.tableHeaderBg,
+          borderRadius: '16px 16px 0px 0px !important',
+          borderBottom: `transparent !important`
         }),
         columnHeader: ({ theme }: OwnerStateThemeType) => ({
           '&:not(.MuiDataGrid-columnHeaderCheckbox)': {
@@ -47,14 +49,17 @@ const DataGrid = () => {
           color: theme.palette.divider
         }),
         row: {
+          borderColor: 'transparent !important',
+          borderRadius: '16px !important',
           '&:last-child': {
             '& .MuiDataGrid-cell': {
-              borderBottom: 0
+              borderBottom: 0,
+              borderColor: 'transparent !important'
             }
           }
         },
         cell: ({ theme }: OwnerStateThemeType) => ({
-          borderColor: theme.palette.divider,
+          borderColor: '#F8F8F8 !important',
           '&:not(.MuiDataGrid-cellCheckbox)': {
             paddingLeft: theme.spacing(4),
             paddingRight: theme.spacing(4),
@@ -77,7 +82,8 @@ const DataGrid = () => {
           padding: 0,
           color: theme.palette.text.primary,
           '& .MuiInputBase-input': {
-            padding: 0
+            padding: 0,
+            display: 'none !important'
           }
         }),
         footerContainer: ({ theme }: OwnerStateThemeType) => ({
@@ -87,7 +93,14 @@ const DataGrid = () => {
             paddingRight: `${theme.spacing(4)} !important`
           },
           '& .MuiTablePagination-select': {
-            color: theme.palette.text.primary
+            color: theme.palette.text.primary,
+            display: 'none !important'
+          },
+          '& .MuiTablePagination-selectLabel': {
+            display: 'none !important'
+          },
+          '& .MuiInputBase-root': {
+            display: 'none !important'
           }
         }),
         selectedRowCount: ({ theme }: OwnerStateThemeType) => ({

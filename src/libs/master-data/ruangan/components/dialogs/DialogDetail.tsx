@@ -6,7 +6,7 @@ import { CircularProgress } from '@mui/material'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import { DataGrid, gridClasses, GridColDef } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid'
 import toast from 'react-hot-toast'
 
 // Utils
@@ -15,7 +15,8 @@ import { useAppDispatch } from 'src/utils/dispatch'
 
 // Redux Imports
 import { getRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
-import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import Dialog, { IDialogRef } from 'src/components/shared/dialog'
+import DataTable from 'src/components/shared/table'
 
 const columns: GridColDef[] = [
   {
@@ -41,24 +42,24 @@ const columns: GridColDef[] = [
 ]
 
 interface DialogDetailProps {
-  dialogRef: React.RefObject<DialogRef>
-  values: any
+  dialogRef: React.RefObject<IDialogRef>
+  id: string
 }
 
-const DialogDetailRuanganLaboratorium = memo(({ dialogRef, values }: DialogDetailProps) => {
+const DialogDetail = memo(({ dialogRef, id }: DialogDetailProps) => {
   const dispatch = useAppDispatch()
 
   const [isLoading, setIsLoading] = useState(false)
   const [data, setData] = useState<any>(null)
 
   const handleGetData = useCallback(async () => {
-    if (!values?.id) return
+    if (!id) return
 
     setIsLoading(true)
 
     try {
       // @ts-ignore
-      const res = await dispatch(getRuanganLaboratorium({ id: values.id }))
+      const res = await dispatch(getRuanganLaboratorium({ id }))
 
       if (res.meta.requestStatus !== 'fulfilled') {
         toast.error(res.payload.response.data?.errors?.[0]?.message || res.payload.response?.data?.message)
@@ -66,93 +67,68 @@ const DialogDetailRuanganLaboratorium = memo(({ dialogRef, values }: DialogDetai
         return
       }
 
-      setData(res.payload.content)
+      const content = {
+        ...res?.payload?.content,
+        entries: res?.payload?.content?.historyLabs
+      }
+
+      setData(content)
     } catch (error) {
       toast.error('Gagal mengambil data detail')
     } finally {
       setIsLoading(false)
     }
-  }, [dispatch, values?.id])
+  }, [dispatch, id])
 
   useEffect(() => {
-    if (values?.id) {
+    if (id) {
       handleGetData()
     }
   }, [handleGetData])
 
   return (
-    <Dialog
-      fullWidth
-      ref={dialogRef}
-      isOpen={dialogRef.current?.isOpen ?? false}
-      onChange={open => {
-        if (!open) {
-          dialogRef.current?.close()
-        }
-      }}
-      maxWidth='md'
-      title='Detail Ruangan Laboratorium'
-    >
-      {() =>
-        isLoading ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Grid container spacing={4}>
-            <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
-              <Grid container spacing={4}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' fontWeight='bold'>
-                    Nama Ruangan
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>{data?.nama || '-'}</Typography>
-                </Grid>
+    <Dialog ref={dialogRef} title='Detail Ruangan Laboratorium' customAction={<></>}>
+      {isLoading ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={4}>
+          <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
+            <Grid container spacing={4}>
+              <Grid item xs={4}>
+                <Typography variant='body1' fontWeight='bold'>
+                  Nama Ruangan
+                </Typography>
               </Grid>
-            </Grid>
-
-            <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
-              <Grid container spacing={4}>
-                <Grid item xs={4}>
-                  <Typography variant='body1' fontWeight='bold'>
-                    Lokasi Ruangan
-                  </Typography>
-                </Grid>
-                <Grid item xs={8}>
-                  <Typography variant='body1'>{data?.lokasi || '-'}</Typography>
-                </Grid>
+              <Grid item xs={8}>
+                <Typography variant='body1'>{data?.nama || '-'}</Typography>
               </Grid>
-            </Grid>
-
-            <Grid item xs={12}>
-              <DataGrid
-                autoHeight
-                rows={data?.historyLabs ?? []}
-                columns={columns}
-                disableColumnFilter
-                disableColumnMenu
-                disableColumnSelector
-                hideFooter
-                loading={isLoading}
-                slots={{
-                  loadingOverlay: CircularProgress
-                }}
-                sx={{
-                  [`& .${gridClasses.cell}`]: {
-                    py: 1
-                  }
-                }}
-              />
             </Grid>
           </Grid>
-        )
-      }
+
+          <Grid item xs={12} borderBottom={`1px solid ${hexToRGBA('#4C4E64', 0.2)}`} paddingBottom='8px'>
+            <Grid container spacing={4}>
+              <Grid item xs={4}>
+                <Typography variant='body1' fontWeight='bold'>
+                  Lokasi Ruangan
+                </Typography>
+              </Grid>
+              <Grid item xs={8}>
+                <Typography variant='body1'>{data?.lokasi || '-'}</Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item xs={12}>
+            <DataTable data={data?.historyLabs ?? []} columns={columns} isLoading={isLoading} />
+          </Grid>
+        </Grid>
+      )}
     </Dialog>
   )
 })
 
-DialogDetailRuanganLaboratorium.displayName = 'DialogDetailRuanganLaboratorium'
+DialogDetail.displayName = 'DialogDetail'
 
-export default DialogDetailRuanganLaboratorium
+export default DialogDetail

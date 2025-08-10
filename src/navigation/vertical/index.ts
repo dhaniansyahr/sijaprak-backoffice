@@ -10,8 +10,9 @@ const navigation = (): VerticalNavItemsType => {
       action: 'read'
     },
     {
-      sectionTitle: 'Menu Management',
-      subject: 'MASTER_DATA',
+      title: 'Jadwal',
+      path: '/jadwal',
+      subject: 'JADWAL',
       action: 'read'
     },
     {
@@ -53,33 +54,44 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
     {
-      title: 'Jadwal',
-      path: '/jadwal',
-      subject: 'JADWAL',
-      action: 'read'
-    },
-    {
-      title: 'Pendaftaran Asisten',
-      path: '/pendaftaran-asisten',
+      title: 'Asisten Lab',
+      path: '/asisten-lab',
       subject: 'PENDAFTARAN_ASISTEN_LAB',
-      action: 'read'
+      action: 'read',
+      children: [
+        {
+          title: 'Pendaftaran',
+          path: '/asisten-lab/pendaftaran',
+          subject: 'PENDAFTARAN_ASISTEN_LAB',
+          action: 'read'
+        },
+        {
+          title: 'Penerimaan',
+          path: '/asisten-lab/penerimaan',
+          subject: 'PENERIMAAN_ASISTEN_LAB',
+          action: 'read'
+        }
+      ]
     },
     {
-      title: 'Penerimaan Asisten',
-      path: '/penerimaan-asisten',
-      subject: 'PENERIMAAN_ASISTEN_LAB',
-      action: 'read'
-    },
-    {
-      sectionTitle: 'Others',
+      title: 'Pengaturan Pengguna',
+      path: '/pengaturan-pengguna',
       subject: 'ROLE_MANAGEMENT',
-      action: 'read'
-    },
-    {
-      title: 'Role Management',
-      path: '/role-management',
-      subject: 'ROLE_MANAGEMENT',
-      action: 'read'
+      action: 'read',
+      children: [
+        {
+          title: 'Manajemen Penggunan',
+          path: '/pengaturan-pengguna/user',
+          subject: 'PENERIMAAN_ASISTEN_LAB',
+          action: 'read'
+        },
+        {
+          title: 'Manajemen Role',
+          path: '/pengaturan-pengguna/role',
+          subject: 'ROLE_MANAGEMENT',
+          action: 'read'
+        }
+      ]
     }
   ]
 }

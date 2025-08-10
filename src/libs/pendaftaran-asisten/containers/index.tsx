@@ -1,4 +1,4 @@
-import TablePendaftaranAsisten from '../components/tables/TablePendaftaranAsisten'
+import TablePendaftaranAsisten from '../components/tables'
 
 export default function MainPendaftaranAsistenContainer() {
   return <TablePendaftaranAsisten />

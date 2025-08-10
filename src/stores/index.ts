@@ -7,6 +7,8 @@ import jadwal from './jadwal/slice'
 import asistenLab from './asisten-lab/slice'
 import mahasiswa from './master-data/mahasiswa/slice'
 import dosen from './master-data/dosen/slice'
+import matakuliah from './master-data/mata-kuliah/slice'
+import role from './role/slice'
 
 export const store = configureStore({
   reducer: {
@@ -16,7 +18,9 @@ export const store = configureStore({
     jadwal,
     asistenLab,
     mahasiswa,
-    dosen
+    dosen,
+    matakuliah,
+    role
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

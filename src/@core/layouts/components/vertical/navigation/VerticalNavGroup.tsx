@@ -205,6 +205,7 @@ const VerticalNavGroup = (props: Props) => {
               width: '100%',
               borderRadius: '8px',
               transition: 'padding-left .25s ease-in-out',
+              color: theme => theme.palette.common.white,
               pr: navCollapsed && !navHover ? (collapsedNavWidth - navigationBorderWidth - 24 - 16) / 8 : 3,
               pl: navCollapsed && !navHover ? (collapsedNavWidth - navigationBorderWidth - 24 - 16) / 8 : 4,
               '&.Mui-selected': {
@@ -237,7 +238,8 @@ const VerticalNavGroup = (props: Props) => {
             <MenuItemTextWrapper sx={{ ...menuGroupCollapsedStyles, ...(isSubToSub ? { ml: 8 } : {}) }}>
               <Typography
                 {...((themeConfig.menuTextTruncate || (!themeConfig.menuTextTruncate && navCollapsed && !navHover)) && {
-                  noWrap: true
+                  noWrap: false,
+                  color: theme => theme.palette.common.white
                 })}
               >
                 <Translations text={item.title} />

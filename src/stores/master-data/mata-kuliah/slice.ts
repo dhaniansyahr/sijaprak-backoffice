@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { getAllMahasiswa } from './action'
+import { getAllMatakuliah } from './action'
 
 interface IInitialState {
   isRefresh: boolean
@@ -18,10 +18,10 @@ export const mahasiswaSlice = createSlice({
     }
   },
   extraReducers: builder => {
-    builder.addCase(getAllMahasiswa.fulfilled, (state, action) => {
+    builder.addCase(getAllMatakuliah.fulfilled, (state, action) => {
       state.isRefresh = true
     })
-    builder.addCase(getAllMahasiswa.rejected, (state, action) => {
+    builder.addCase(getAllMatakuliah.rejected, (state, action) => {
       state.isRefresh = true
     })
   }

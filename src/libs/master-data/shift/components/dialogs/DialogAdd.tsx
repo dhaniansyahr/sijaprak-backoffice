@@ -11,13 +11,12 @@ import { setIsRefresh } from 'src/stores/master-data/shift/slice'
 import toast from 'react-hot-toast'
 import { handleMapErrors } from 'src/utils/response.utils'
 import FormDatePicker from 'src/components/shared/input/date'
-import { Button, CircularProgress, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import { createShift } from 'src/stores/master-data/shift/action'
-import Dialog, { DialogRef } from 'src/components/shared/dialog'
-import LoadingButton from '@mui/lab/LoadingButton'
+import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 
 interface DialogAddProps {
-  dialogRef: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<IDialogRef>
 }
 
 const DialogAdd = ({ dialogRef }: DialogAddProps) => {
@@ -74,76 +73,42 @@ const DialogAdd = ({ dialogRef }: DialogAddProps) => {
   })
 
   return (
-    <Dialog
-      fullWidth
-      ref={dialogRef}
-      isOpen={dialogRef.current?.isOpen ?? false}
-      onChange={open => {
-        if (!open) {
-          dialogRef.current?.close()
-        }
-      }}
-      maxWidth='md'
-      title='Tambah Shift'
-    >
-      {close => (
-        <form onSubmit={onSubmit}>
-          <Grid container spacing={4}>
-            <Grid item xs={6}>
-              <FormDatePicker
-                name='startTime'
-                control={control}
-                rules={{ required: 'Waktu mulai tidak boleh kosong' }}
-                showTimeSelect
-                showTimeSelectOnly
-                label='Start Time'
-                placeholder='HH:mm'
-                dateFormat='HH:mm'
-                popperContainer={({ children }) => <Box sx={{ position: 'fixed', zIndex: 99999 }}>{children}</Box>}
-              />
-              {!!handleMapErrors(errors, 'startTime') && (
-                <Typography color='error'>{handleMapErrors(errors, 'startTime')}</Typography>
-              )}
-            </Grid>
+    <Dialog ref={dialogRef} title='Tambah Shift' onSubmit={onSubmit} isLoading={isLoading}>
+      <Grid container spacing={4}>
+        <Grid item xs={6}>
+          <FormDatePicker
+            name='startTime'
+            control={control}
+            rules={{ required: 'Waktu mulai tidak boleh kosong' }}
+            showTimeSelect
+            showTimeSelectOnly
+            label='Start Time'
+            placeholder='HH:mm'
+            dateFormat='HH:mm'
+            popperContainer={({ children }) => <Box sx={{ position: 'fixed', zIndex: 99999 }}>{children}</Box>}
+          />
+          {!!handleMapErrors(errors, 'startTime') && (
+            <Typography color='error'>{handleMapErrors(errors, 'startTime')}</Typography>
+          )}
+        </Grid>
 
-            <Grid item xs={6}>
-              <FormDatePicker
-                name='endTime'
-                control={control}
-                label='End Time'
-                placeholder='HH:mm'
-                rules={{ required: 'Waktu selesai tidak boleh kosong' }}
-                showTimeSelect
-                showTimeSelectOnly
-                dateFormat='HH:mm'
-                popperContainer={({ children }) => <Box sx={{ position: 'fixed', zIndex: 99999 }}>{children}</Box>}
-              />
-              {!!handleMapErrors(errors, 'endTime') && (
-                <Typography color='error'>{handleMapErrors(errors, 'endTime')}</Typography>
-              )}
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box display='flex' justifyContent={'flex-end'} gap={4}>
-                <Button variant='contained' color='secondary' size='medium' disabled={isLoading} onClick={close}>
-                  Batal
-                </Button>
-
-                <LoadingButton
-                  loading={isLoading}
-                  loadingIndicator={<CircularProgress size={20} />}
-                  type='submit'
-                  variant='contained'
-                  disabled={isLoading}
-                  color='primary'
-                >
-                  Submit
-                </LoadingButton>
-              </Box>
-            </Grid>
-          </Grid>
-        </form>
-      )}
+        <Grid item xs={6}>
+          <FormDatePicker
+            name='endTime'
+            control={control}
+            label='End Time'
+            placeholder='HH:mm'
+            rules={{ required: 'Waktu selesai tidak boleh kosong' }}
+            showTimeSelect
+            showTimeSelectOnly
+            dateFormat='HH:mm'
+            popperContainer={({ children }) => <Box sx={{ position: 'fixed', zIndex: 99999 }}>{children}</Box>}
+          />
+          {!!handleMapErrors(errors, 'endTime') && (
+            <Typography color='error'>{handleMapErrors(errors, 'endTime')}</Typography>
+          )}
+        </Grid>
+      </Grid>
     </Dialog>
   )
 }

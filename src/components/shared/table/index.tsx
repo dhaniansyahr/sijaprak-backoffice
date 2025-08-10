@@ -2,22 +2,26 @@ import React from 'react'
 import { DataGrid, gridClasses, DataGridProps } from '@mui/x-data-grid'
 import { CircularProgress, Box } from '@mui/material'
 
-// Generic interface for the table props
-interface DataTableProps extends Omit<DataGridProps, 'rows' | 'columns' | 'loading' | 'onPaginationModelChange'> {
+interface IPaginationProps {
+  page: number
+  rows: number
+  setPage: (page: number) => void
+  setRows: (rows: number) => void
+}
+interface DataTableProps extends Omit<DataGridProps, 'rows' | 'columns' | 'loading' | 'pagination'> {
   data: any
   columns: any
-  page?: number
-  pageSize?: number
+  pagination?: IPaginationProps
   isLoading: boolean
-  onPaginationModelChange?: (newModel: any) => void
-  checkboxSelection?: boolean
-  disableRowSelectionOnClick?: boolean
-  isRowSelectable?: (params: any) => boolean
-  onRowSelectionModelChange?: (ids: any) => void
 }
 
 const DataTable = (props: DataTableProps) => {
-  const { data, columns, page, pageSize, isLoading, onPaginationModelChange, ...rest } = props
+  const { data, columns, isLoading, pagination, ...rest } = props
+
+  const onPaginationModel = (newModel: any) => {
+    pagination?.setPage(newModel.page + 1)
+    pagination?.setRows(newModel.rows)
+  }
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -35,12 +39,12 @@ const DataTable = (props: DataTableProps) => {
         initialState={{
           pagination: {
             paginationModel: {
-              page: (page ?? 0) - 1,
-              pageSize: pageSize ?? 10
+              page: (pagination?.page ?? 0) - 1,
+              pageSize: pagination?.rows ?? 10
             }
           }
         }}
-        onPaginationModelChange={onPaginationModelChange}
+        onPaginationModelChange={onPaginationModel}
         loading={isLoading}
         slots={{
           loadingOverlay: CircularProgress
@@ -48,14 +52,6 @@ const DataTable = (props: DataTableProps) => {
         sx={{
           [`& .${gridClasses.cell}`]: {
             py: 2
-          },
-          '& .MuiDataGrid-columnHeaders': {
-            backgroundColor: 'primary.main',
-            color: 'white',
-            fontWeight: 600
-          },
-          '& .MuiDataGrid-row:hover': {
-            backgroundColor: 'action.hover'
           }
         }}
       />

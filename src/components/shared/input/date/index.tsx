@@ -5,24 +5,26 @@ import ReactDatePicker, { ReactDatePickerProps } from 'react-datepicker'
 import { Control, FieldPath, FieldValues, useController } from 'react-hook-form'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
-const DatePickerInputs = React.forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
+const DatePickerInputs = React.forwardRef<HTMLInputElement, TextFieldProps>((fieldProps, ref) => {
+  const { placeholder, ...rest } = fieldProps
   return (
     <TextField
+      {...rest}
       inputRef={ref}
-      {...props}
+      placeholder={placeholder}
       InputProps={{
         startAdornment: (
           <Box sx={{ display: 'flex', paddingInlineEnd: '8px', color: 'text.secondary' }}>
             <Icon icon='bi:calendar' />
           </Box>
         ),
-        ...props.InputProps
+        ...fieldProps.InputProps
       }}
       sx={{
         '& .MuiInputBase-root': {
           cursor: 'pointer'
         },
-        ...props.sx
+        ...fieldProps.sx
       }}
     />
   )

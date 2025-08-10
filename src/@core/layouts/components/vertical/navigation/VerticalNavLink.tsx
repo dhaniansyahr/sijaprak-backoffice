@@ -167,7 +167,7 @@ const VerticalNavLink = ({
           >
             <Typography
               {...((themeConfig.menuTextTruncate || (!themeConfig.menuTextTruncate && navCollapsed && !navHover)) && {
-                noWrap: true
+                noWrap: false
               })}
               sx={{ color: 'white' }}
             >

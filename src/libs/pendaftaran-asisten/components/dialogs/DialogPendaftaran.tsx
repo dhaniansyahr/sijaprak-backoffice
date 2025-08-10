@@ -3,13 +3,13 @@ import { Box, Button, CircularProgress, Grid, TextField } from '@mui/material'
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
-import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 import { useAuth } from 'src/hooks/useAuth'
 import { pendaftaranAsistenLab } from 'src/stores/asisten-lab/action'
 import { useAppDispatch } from 'src/utils/dispatch'
 
 interface IDialogPendaftaranProps {
-  dialogRef: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<IDialogRef>
   jadwalId: string
 }
 
@@ -60,63 +60,53 @@ const DialogPendaftaran = ({ dialogRef, jadwalId }: IDialogPendaftaranProps) => 
   return (
     <Dialog
       ref={dialogRef}
-      isOpen={dialogRef.current?.isOpen ?? false}
-      onChange={open => {
-        if (!open) {
-          dialogRef.current?.close()
-        }
-      }}
       title='Pendaftaran Asisten Laboratorium'
-      maxWidth='sm'
-      fullWidth
+      onSubmit={onSubmit}
+      customAction={
+        <Grid item xs={12}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button variant='outlined' color='primary' onClick={() => dialogRef.current?.close()}>
+              Batal
+            </Button>
+            <LoadingButton
+              variant='contained'
+              color='primary'
+              type='submit'
+              loading={isLoading}
+              loadingIndicator={<CircularProgress />}
+            >
+              Daftar
+            </LoadingButton>
+          </Box>
+        </Grid>
+      }
     >
-      {() => (
-        <form onSubmit={onSubmit}>
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <Controller
-                control={control}
-                name='nilaiTeori'
-                render={({ field }) => <TextField {...field} label='Nilai Teori' fullWidth />}
-                rules={{ required: 'Nilai Teori harus diisi' }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                control={control}
-                name='nilaiPraktikum'
-                render={({ field }) => <TextField {...field} label='Nilai Praktikum' fullWidth />}
-                rules={{ required: 'Nilai Praktikum harus diisi' }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Controller
-                control={control}
-                name='nilaiAkhir'
-                render={({ field }) => <TextField {...field} label='Nilai Akhir' fullWidth />}
-                rules={{ required: 'Nilai Akhir harus diisi' }}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button variant='outlined' color='primary' onClick={() => dialogRef.current?.close()}>
-                  Batal
-                </Button>
-                <LoadingButton
-                  variant='contained'
-                  color='primary'
-                  type='submit'
-                  loading={isLoading}
-                  loadingIndicator={<CircularProgress />}
-                >
-                  Daftar
-                </LoadingButton>
-              </Box>
-            </Grid>
-          </Grid>
-        </form>
-      )}
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Controller
+            control={control}
+            name='nilaiTeori'
+            render={({ field }) => <TextField {...field} label='Nilai Teori' fullWidth />}
+            rules={{ required: 'Nilai Teori harus diisi' }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Controller
+            control={control}
+            name='nilaiPraktikum'
+            render={({ field }) => <TextField {...field} label='Nilai Praktikum' fullWidth />}
+            rules={{ required: 'Nilai Praktikum harus diisi' }}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Controller
+            control={control}
+            name='nilaiAkhir'
+            render={({ field }) => <TextField {...field} label='Nilai Akhir' fullWidth />}
+            rules={{ required: 'Nilai Akhir harus diisi' }}
+          />
+        </Grid>
+      </Grid>
     </Dialog>
   )
 }

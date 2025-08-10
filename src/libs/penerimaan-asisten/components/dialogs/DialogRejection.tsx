@@ -8,11 +8,11 @@ import toast from 'react-hot-toast'
 import { penerimaanAsistenLab } from 'src/stores/asisten-lab/action'
 import { useAppDispatch } from 'src/utils/dispatch'
 import { setIsRefresh } from 'src/stores/asisten-lab/slice'
-import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 import { LoadingButton } from '@mui/lab'
 
 interface Props {
-  dialogRef: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<IDialogRef>
 
   id: string
 }
@@ -55,56 +55,47 @@ const DialogRejection = ({ dialogRef, id }: Props) => {
   return (
     <Dialog
       ref={dialogRef}
-      isOpen={dialogRef.current?.isOpen ?? false}
-      onChange={open => {
-        if (!open) {
-          dialogRef.current?.close()
-        }
-      }}
       title='Penolakan Pendaftaran Asisten Laboratorium'
-      maxWidth='sm'
-      fullWidth
+      customAction={
+        <Grid item xs={12}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button variant='outlined' color='primary' onClick={() => dialogRef.current?.close()}>
+              Batal
+            </Button>
+            <LoadingButton
+              variant='contained'
+              color='error'
+              type='submit'
+              loading={isLoading}
+              loadingIndicator={<CircularProgress size={20} />}
+            >
+              Tolak
+            </LoadingButton>
+          </Box>
+        </Grid>
+      }
+      onSubmit={onSubmit}
+      isLoading={isLoading}
     >
-      {() => (
-        <form onSubmit={onSubmit}>
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <Controller
-                control={control}
-                name='reason'
-                render={({ field, fieldState: { error } }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    multiline
-                    rows={4}
-                    placeholder='Masukan alasan Penolakan'
-                    error={!!error}
-                    helperText={error?.message}
-                  />
-                )}
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Controller
+            control={control}
+            name='reason'
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                fullWidth
+                multiline
+                rows={4}
+                placeholder='Masukan alasan Penolakan'
+                error={!!error}
+                helperText={error?.message}
               />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button variant='outlined' color='primary' onClick={() => dialogRef.current?.close()}>
-                  Batal
-                </Button>
-                <LoadingButton
-                  variant='contained'
-                  color='error'
-                  type='submit'
-                  loading={isLoading}
-                  loadingIndicator={<CircularProgress size={20} />}
-                >
-                  Tolak
-                </LoadingButton>
-              </Box>
-            </Grid>
-          </Grid>
-        </form>
-      )}
+            )}
+          />
+        </Grid>
+      </Grid>
     </Dialog>
   )
 }

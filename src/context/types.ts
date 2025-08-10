@@ -17,6 +17,10 @@ export type UserDataType = {
   noIdentitas: string
   roleId: string
   userLevelId?: string // Added for ACL fetching
+  userLevel: {
+    id: string
+    name: string
+  }
 }
 
 export type AuthValuesType = {

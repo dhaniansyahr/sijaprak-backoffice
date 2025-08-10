@@ -251,7 +251,11 @@ const AuthProvider = ({ children }: Props) => {
           noIdentitas: loginResponse.data.content?.user?.npm || loginResponse.data.content?.user?.nip,
           email: loginResponse.data.content?.user?.email || '',
           roleId: loginResponse.data.content?.user?.userLevelId,
-          userLevelId: loginResponse.data.content?.user?.userLevelId
+          userLevelId: loginResponse.data.content?.user?.userLevelId,
+          userLevel: {
+            id: loginResponse.data.content?.user?.userLevel?.id,
+            name: loginResponse.data.content?.user?.userLevel?.name
+          }
         }
 
         if (!token) {

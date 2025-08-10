@@ -1,5 +1,5 @@
-import TablePenerimaanAsisten from '../components/tables/TablePenerimaanAsisten'
+import TablePenerimaanAsistenLab from '../components/tables'
 
 export default function MainPenerimaanAsistenContainer() {
-  return <TablePenerimaanAsisten />
+  return <TablePenerimaanAsistenLab />
 }

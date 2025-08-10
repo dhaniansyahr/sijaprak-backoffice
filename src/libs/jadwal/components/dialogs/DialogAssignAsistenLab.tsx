@@ -1,11 +1,10 @@
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import Grid from '@mui/material/Grid'
-import CircularProgress from '@mui/material/CircularProgress'
-import Dialog, { DialogRef } from 'src/components/shared/dialog'
+import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 import { useAssignAsisten } from '../../hooks/useAssignAssiten'
+import DataTable from 'src/components/shared/table'
 
 interface IDialogProps {
-  dialogRef: React.RefObject<DialogRef>
+  dialogRef: React.RefObject<IDialogRef>
   id: string
 }
 
@@ -14,39 +13,11 @@ const DialogAssignAsistenLab = ({ dialogRef, id }: IDialogProps) => {
 
   return (
     <Dialog ref={dialogRef} title='Assign Asisten Lab' maxWidth='md' fullWidth>
-      {() => (
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <DataGrid
-              autoHeight
-              rows={data || []}
-              columns={columns}
-              pagination
-              disableColumnFilter
-              disableColumnMenu
-              disableColumnSelector
-              hideFooter
-              loading={isLoading}
-              slots={{
-                loadingOverlay: CircularProgress
-              }}
-              sx={{
-                [`& .${gridClasses.cell}`]: {
-                  py: 1
-                },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  fontWeight: 600
-                },
-                '& .MuiDataGrid-row:hover': {
-                  backgroundColor: 'action.hover'
-                }
-              }}
-            />
-          </Grid>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <DataTable data={data || []} columns={columns} isLoading={isLoading} />
         </Grid>
-      )}
+      </Grid>
     </Dialog>
   )
 }
