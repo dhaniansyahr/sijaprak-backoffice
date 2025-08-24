@@ -11,7 +11,7 @@ import { createColumns } from './columns'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
 import { GridColDef } from '@mui/x-data-grid'
 import { deleteRuanganLaboratorium, getAllRuanganLaboratorium } from 'src/stores/master-data/ruangan/action'
-import { IDialogsRuanganRef } from '../dialogs'
+import DialogsRuangan, { IDialogsRuanganRef } from '../dialogs'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/master-data/ruangan/slice'
@@ -20,6 +20,7 @@ const TableRuangan = memo(() => {
   const dispatch = useAppDispatch()
 
   const [search, setSearch] = useState('')
+  const [values, setValues] = useState<any>(null)
 
   const handleSearch = useCallback(
     debounce((query: string) => {
@@ -57,9 +58,18 @@ const TableRuangan = memo(() => {
   }
 
   const columns = createColumns({
-    onDetail: (values: any) => dialogsRef.current?.openDialogDetail(values),
-    onEdit: (values: any) => dialogsRef.current?.openDialogEdit(values),
-    onChange: (values: any) => dialogsRef.current?.openDialogChange(values),
+    onDetail: (v: any) => {
+      setValues(v)
+      dialogsRef.current?.openDialogDetail(v)
+    },
+    onEdit: (v: any) => {
+      setValues(v)
+      dialogsRef.current?.openDialogEdit(v)
+    },
+    onChange: (v: any) => {
+      setValues(v)
+      dialogsRef.current?.openDialogChange(v)
+    },
     onDelete: (id: string) => onDelete(id)
   })
 
@@ -101,6 +111,8 @@ const TableRuangan = memo(() => {
       />
       <CardContent>
         <RuanganEntries search={search} columns={columns} />
+
+        <DialogsRuangan ref={dialogsRef} values={values} setValues={setValues} />
       </CardContent>
     </Card>
   )
@@ -126,9 +138,12 @@ const RuanganEntries = memo(({ search, columns }: { search: string; columns: Gri
       params: {
         page: isPagination ? page : 1,
         rows: rows,
-        searchFilters: {
+        searchFilters: JSON.stringify({
           nama: search
-        }
+        }),
+        filters: JSON.stringify({
+          isLab: true
+        })
       }
     }
 

@@ -34,7 +34,7 @@ export default function MenuDropdown({ onDetail, onEdit, onChange }: IMenuDropdo
       >
         <Can I={'read'} a={'RUANGAN'}>
           <MenuItem sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'start' }} onClick={onDetail}>
-            <Icon icon='ph: eye' />
+            <Icon icon='ph:eye' />
             <span>Detail</span>
           </MenuItem>
         </Can>

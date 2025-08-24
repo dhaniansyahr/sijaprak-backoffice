@@ -30,7 +30,8 @@ const DialogEdit = memo(({ dialogRef, values }: DialogEditProps) => {
   const { control, reset, handleSubmit } = useForm<any>({
     values: {
       nama: values?.nama || '',
-      lokasi: values?.lokasi || ''
+      lokasi: values?.lokasi || '',
+      kapasitas: values?.kapasitas || ''
     }
   })
 
@@ -47,8 +48,10 @@ const DialogEdit = memo(({ dialogRef, values }: DialogEditProps) => {
       setErrors([])
 
       try {
+        const body = Object.assign({}, value, { kapasitas: Number(value?.kapasitas) })
+
         // @ts-ignore
-        const res = await dispatch(updateRuanganLaboratorium({ data: value, id: values?.id }))
+        const res = await dispatch(updateRuanganLaboratorium({ data: body, id: values?.id }))
 
         if (res.meta.requestStatus !== 'fulfilled') {
           setErrors(res.payload.response.data?.errors || [])

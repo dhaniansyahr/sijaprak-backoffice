@@ -38,7 +38,7 @@ const DialogsRuangan = forwardRef<IDialogsRuanganRef, IDialogRuanganProps>(({ va
     },
     openDialogChange: values => {
       setValues(values)
-      dialogEditRef.current?.open()
+      dialogChangeRef.current?.open()
     }
   }))
 

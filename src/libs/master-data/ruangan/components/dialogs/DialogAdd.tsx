@@ -29,7 +29,8 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
   const { control, reset, handleSubmit, setError } = useForm<any>({
     defaultValues: {
       nama: '',
-      lokasi: ''
+      lokasi: '',
+      kapasitas: ''
     }
   })
 
@@ -46,8 +47,10 @@ const DialogAdd = memo(({ dialogRef }: DialogCreateProps) => {
       setErrorsResponse([])
 
       try {
+        const body = Object.assign({}, value, { kapasitas: Number(value?.kapasitas) })
+
         // @ts-ignore
-        const res = await dispatch(createRuanganLaboratorium({ data: value }))
+        const res = await dispatch(createRuanganLaboratorium({ data: body }))
 
         if (res.meta.requestStatus !== 'fulfilled') {
           const errors = res.payload.response.data?.errors || []

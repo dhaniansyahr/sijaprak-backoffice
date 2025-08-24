@@ -23,5 +23,19 @@ module.exports = {
       }
     ]
   },
-  swcMinify: true
+  swcMinify: true,
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      maxAsyncRequests: 30,
+      maxInitialRequests: 30,
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all'
+        }
+      }
+    }
+  }
 }

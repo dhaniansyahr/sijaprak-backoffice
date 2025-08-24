@@ -51,6 +51,21 @@ const FormSection = memo(({ control, errors, isAssignKepalaLab = false }: IFormS
           rules={{ required: secondRequired }}
         />
       </Grid>
+
+      {!isAssignKepalaLab && (
+        <Grid item xs={12}>
+          <FormTextField
+            name={'kapasitas'}
+            label={'Kapasitas Ruangan'}
+            placeholder={'Masukan Kapasitas Ruangan'}
+            control={control}
+            error={!!handleMapErrors(errors, 'kapasitas')}
+            helperText={handleMapErrors(errors, 'kapasitas')}
+            fullWidth
+            rules={{ required: 'Kapasitas Ruangan is Required!' }}
+          />
+        </Grid>
+      )}
     </Grid>
   )
 })

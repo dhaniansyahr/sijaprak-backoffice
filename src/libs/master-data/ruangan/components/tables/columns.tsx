@@ -30,19 +30,28 @@ export function createColumns({ onChange, onDetail, onEdit, onDelete }: ICreateC
       flex: 0.25,
       field: 'namaKepalaLab',
       headerName: 'Kepala Lab',
-      sortable: false
+      sortable: false,
+      renderCell: params => <span>{params.row.namaKepalaLab ?? '-'}</span>
     },
     {
       flex: 0.25,
       field: 'nipKepalaLab',
       headerName: 'NIP',
-      sortable: false
+      sortable: false,
+      renderCell: params => <span>{params.row.nipKepalaLab ?? '-'}</span>
     },
     {
       flex: 0.25,
       field: 'lokasi',
       headerName: 'Lokasi Ruangan',
       sortable: false
+    },
+    {
+      flex: 0.25,
+      field: 'kapasitas',
+      headerName: 'Kapasitas Ruangan',
+      sortable: false,
+      renderCell: params => <span>{params.row.kapasitas ?? '-'}</span>
     },
     {
       flex: 0.25,

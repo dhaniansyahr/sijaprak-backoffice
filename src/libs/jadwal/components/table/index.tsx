@@ -254,13 +254,14 @@ const GenerateJadwal = memo(({ isRegenerate, openDialog }: { isRegenerate: boole
 
   const onSubmit = async () => {
     if (isTeoriExist) {
-      if (!isRegenerate) {
-        await onDeleteAll()
-      } else {
-        await onGenerate()
-      }
-    } else {
+      // if (!isRegenerate) {
+      //   await onDeleteAll()
+      // } else {
       openDialog()
+
+      // }
+    } else {
+      await onGenerate()
     }
   }
 
@@ -270,7 +271,7 @@ const GenerateJadwal = memo(({ isRegenerate, openDialog }: { isRegenerate: boole
       color='primary'
       loading={isLoading}
       loadingIndicator={<CircularProgress size={20} />}
-      onClick={onCheckTeoriExist}
+      onClick={openDialog}
       startIcon={<Icon icon='mdi:refresh' />}
     >
       {isRegenerate ? 'Re-Generate' : 'Generate'}
