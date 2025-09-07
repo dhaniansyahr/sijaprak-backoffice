@@ -184,15 +184,12 @@ export const deleteAllJadwal = createAsyncThunk('jadwal/deleteAll', async (_, { 
   }
 })
 
-export const checkJadwalTeoriExist = createAsyncThunk(
-  'jadwal/checkJadwalTeoriExist',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/jadwal/check-jadwal-teori`)
+export const check = createAsyncThunk('jadwal/check', async (_, { rejectWithValue }) => {
+  try {
+    const response = await api.get(`/jadwal/check`)
 
-      return response.data
-    } catch (error) {
-      return rejectWithValue(error)
-    }
+    return response.data
+  } catch (error) {
+    return rejectWithValue(error)
   }
-)
+})

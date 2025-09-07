@@ -1,17 +1,26 @@
 // React Imports
 import { Box, Card, CardContent, CardHeader, debounce, TextField } from '@mui/material'
-import { memo, useState, useCallback, useEffect } from 'react'
+import { memo, useState, useCallback, useEffect, useRef } from 'react'
 
 // Hooks & types
 import HeaderPage from 'src/components/shared/header-page'
 import DataTable from 'src/components/shared/table'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { getAllMatakuliah } from 'src/stores/master-data/mata-kuliah/action'
+import { deleteMatakuliah, getAllMatakuliah } from 'src/stores/master-data/mata-kuliah/action'
 import { createColumns } from './column'
 import { GridColDef } from '@mui/x-data-grid'
+import { IDialogRef } from 'src/components/shared/dialog'
+import DialogEdit from '../dialogs/DialogEdit'
+import toast from 'react-hot-toast'
+import { setIsRefresh } from 'src/stores/master-data/mata-kuliah/slice'
 
 const TableMataKuliah = memo(() => {
+  const dispatch = useAppDispatch()
+
   const [search, setSearch] = useState('')
+
+  const dialogdRef = useRef<IDialogRef>(null)
+  const [row, setRow] = useState<any>(null)
 
   const handleSearch = useCallback(
     debounce((query: string) => {
@@ -20,7 +29,39 @@ const TableMataKuliah = memo(() => {
     []
   )
 
-  const columns = createColumns()
+  const onDelete = async (id: string) => {
+    toast.loading('Loading...')
+
+    const body = {
+      params: {
+        ids: JSON.stringify([id])
+      }
+    }
+
+    // @ts-ignore
+    await dispatch(deleteMatakuliah({ data: body })).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        toast.dismiss()
+        toast.error(res?.payload?.response?.data?.message)
+
+        return
+      }
+
+      toast.success(res?.payload?.message)
+      dispatch(setIsRefresh())
+      toast.dismiss()
+    })
+  }
+
+  const columns = createColumns({
+    onEdit: (id: string) => {
+      setRow(id)
+      dialogdRef.current?.open()
+    },
+    onDelete: (id: string) => {
+      onDelete(id)
+    }
+  })
 
   return (
     <Card>
@@ -49,6 +90,8 @@ const TableMataKuliah = memo(() => {
       <CardContent>
         <MatakuliahEntries search={search} columns={columns} />
       </CardContent>
+
+      <DialogEdit dialogRef={dialogdRef} id={row} isLoading={false} />
     </Card>
   )
 })

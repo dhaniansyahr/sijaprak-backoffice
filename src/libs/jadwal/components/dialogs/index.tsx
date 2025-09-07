@@ -3,7 +3,7 @@ import DialogAssignAsistenLab from './DialogAssignAsistenLab'
 import { IDialogRef } from 'src/components/shared/dialog'
 import { useForm, FormProvider } from 'react-hook-form'
 import { useAppDispatch } from 'src/utils/dispatch'
-import { createJadwal, updateJadwal } from 'src/stores/jadwal/action'
+import { check, createJadwal, updateJadwal } from 'src/stores/jadwal/action'
 import toast from 'react-hot-toast'
 import { setIsRefresh } from 'src/stores/jadwal/slice'
 
@@ -13,9 +13,10 @@ import DialogConfirmation from 'src/components/shared/confirmation-dialog'
 import DialogConflict from './DialogConflict'
 import DialogEditPertemuan from './DialogEditPertemuan'
 import DialogEdit from './DialogEdit'
+import DialogCreateOptions from './DialogCreateOptions'
 
 export interface IDialogsJadwalRef {
-  openAddDialog: () => void
+  openOptionsDialog: () => void
   openEditDialog: (id: string) => void
   openAssignAsisten: (id: string) => void
   openEditPertemuan: (id: string) => void
@@ -67,6 +68,7 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
   const [isLoading, setIsLoading] = useState(false)
   const [conflictData, setConflictData] = useState<any[]>([])
 
+  const dialogOptionsRef = useRef<IDialogRef>(null)
   const dialogAddRef = useRef<IDialogRef>(null)
   const dialogEditRef = useRef<IDialogRef>(null)
   const dialogAsistenRef = useRef<IDialogRef>(null)
@@ -76,22 +78,12 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
   const dialogConflictRef = useRef<IDialogRef>(null)
 
   useImperativeHandle(ref, () => ({
-    openAddDialog: () => {
-      // Reset form sebelum membuka dialog
-      methods.reset({
-        hari: '',
-        shiftId: '',
-        ruanganId: '',
-        matakuliahId: '',
-        kelas: '',
-        isOverride: false
-      })
-      dialogAddRef.current?.open()
+    openOptionsDialog: () => {
+      dialogOptionsRef.current?.open()
     },
+
     openEditDialog: id => {
       setId(id)
-
-      // Reset form edit sebelum membuka dialog
       methodsEdit.reset({
         hari: '',
         shiftId: '',
@@ -181,8 +173,36 @@ const DialogJadwals = forwardRef<IDialogsJadwalRef, IDialogsJadwalProps>(({ id, 
     })
   })
 
+  const onCheckTheoryJadwal = async () => {
+    setIsLoading(true)
+
+    // @ts-ignore
+    await dispatch(check()).then(res => {
+      if (res.meta.requestStatus !== 'fulfilled') {
+        toast.error(res.payload?.response?.data?.message)
+
+        setIsLoading(false)
+
+        return
+      }
+
+      if (res.payload?.content) {
+        console.log('response : ', res?.payload?.content)
+        setIsLoading(false)
+      } else {
+        setIsLoading(false)
+        dialogBulkUploadRef.current?.open()
+      }
+    })
+  }
+
   return (
     <>
+      <DialogCreateOptions
+        dialogRef={dialogOptionsRef}
+        onManual={() => dialogAddRef.current?.open()}
+        onGenerate={() => onCheckTheoryJadwal()}
+      />
       <FormProvider {...methods}>
         <DialogAdd dialogRef={dialogAddRef} onSubmit={() => dialogConfirmationRef.current?.open()} />
         <DialogConfirmation dialogRef={dialogConfirmationRef} onConfirm={onSubmit} isLoading={isLoading} />

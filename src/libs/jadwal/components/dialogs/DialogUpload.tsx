@@ -1,7 +1,7 @@
+import { Icon } from '@iconify/react'
 import { LoadingButton } from '@mui/lab'
-import { Box, Button, CircularProgress, Grid, TextField } from '@mui/material'
+import { Box, Button, CircularProgress, Grid, IconButton, Typography } from '@mui/material'
 import React, { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Dialog, { IDialogRef } from 'src/components/shared/dialog'
 import { bulkUploadJadwal, generateJawdal } from 'src/stores/jadwal/action'
@@ -15,9 +15,8 @@ interface IDialogUploadProps {
 export default function DialogUpload({ dialogRef }: IDialogUploadProps) {
   const dispatch = useAppDispatch()
 
-  const form = useForm()
-
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<any>(null)
 
   const onGenerate = async () => {
     // @ts-ignore
@@ -36,11 +35,11 @@ export default function DialogUpload({ dialogRef }: IDialogUploadProps) {
       .finally(() => setIsLoading(false))
   }
 
-  const onSubmit = form.handleSubmit(async (value: any) => {
+  const onSubmit = async () => {
     setIsLoading(true)
 
     const body: any = {
-      file: value?.file
+      file: selectedFile
     }
 
     // @ts-ignore
@@ -48,12 +47,16 @@ export default function DialogUpload({ dialogRef }: IDialogUploadProps) {
       if (res.meta.requestStatus !== 'fulfilled') {
         toast.error(res?.payload?.response?.data?.message)
 
+        setIsLoading(false)
+
         return
       }
 
+      setIsLoading(false)
+
       await onGenerate()
     })
-  })
+  }
 
   return (
     <Dialog
@@ -63,69 +66,77 @@ export default function DialogUpload({ dialogRef }: IDialogUploadProps) {
       customAction={
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
-            <Button variant='outlined' color='secondary' type='button' disabled={isLoading}>
+            <Button variant='outlined' color='secondary' type='button' disabled={isLoading || selectedFile === null}>
               Batal
             </Button>
             <LoadingButton
               variant='contained'
               color='primary'
               type='submit'
-              disabled={isLoading}
+              disabled={isLoading || selectedFile === null}
               loading={isLoading}
               loadingIndicator={<CircularProgress size={16} />}
             >
               Prosess & Generate
             </LoadingButton>
+            <Button
+              variant='outlined'
+              color='primary'
+              onClick={() => {
+                document.getElementById('file')?.click()
+              }}
+              startIcon={<Icon icon='mdi:file-outline' />}
+              disabled={selectedFile}
+            >
+              Pilih File
+            </Button>
+            <input
+              type='file'
+              id='file'
+              accept='.xlsx .xls'
+              hidden
+              onChange={async e => {
+                const file = e.target.files?.[0]
+
+                if (file) {
+                  setSelectedFile(file)
+                }
+              }}
+            />
           </Box>
         </Grid>
       }
     >
       <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Controller
-            name='file'
-            control={form.control}
-            render={({ field }) => (
-              <TextField
-                fullWidth
-                label='File'
-                value={field.value ? field.value.name : 'Pilih file'}
-                inputProps={{
-                  readOnly: true
-                }}
-                InputProps={{
-                  endAdornment: (
-                    <>
-                      <Button
-                        sx={{ whiteSpace: 'nowrap' }}
-                        variant='outlined'
-                        color='primary'
-                        onClick={() => {
-                          document.getElementById('file')?.click()
-                        }}
-                      >
-                        Pilih File
-                      </Button>
-                      <input
-                        type='file'
-                        id='file'
-                        accept='.xlsx .xls'
-                        hidden
-                        onChange={async e => {
-                          const file = e.target.files?.[0]
-
-                          if (file) {
-                            field.onChange(file)
-                          }
-                        }}
-                      />
-                    </>
-                  )
-                }}
-              />
-            )}
-          />
-        </Grid>
+        {selectedFile ? (
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                bgcolor: theme => theme.palette.primary.main + '22',
+                color: theme => theme.palette.primary.main,
+                p: 2,
+                borderRadius: 1,
+                justifyContent: 'space-between'
+              }}
+            >
+              <Typography variant='body1' color={'primary'}>
+                {selectedFile?.name}
+              </Typography>
+              <IconButton onClick={() => setSelectedFile(null)}>
+                <Icon icon='mdi:delete' />
+              </IconButton>
+            </Box>
+          </Grid>
+        ) : (
+          <Grid item xs={12}>
+            <Typography variant='h6' color={'primary'} align='center'>
+              Pilih file untuk diupload
+            </Typography>
+          </Grid>
+        )}
       </Grid>
     </Dialog>
   )

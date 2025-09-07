@@ -7,7 +7,7 @@ import { LoadingButton } from '@mui/lab'
 import DataTable from 'src/components/shared/table'
 import Can, { AbilityContext } from 'src/layouts/components/acl/Can'
 import { useAppDispatch, useAppSelector } from 'src/utils/dispatch'
-import { checkJadwalTeoriExist, deleteAllJadwal, generateJawdal, getAllJadwal } from 'src/stores/jadwal/action'
+import { deleteAllJadwal, generateJawdal, getAllJadwal } from 'src/stores/jadwal/action'
 import { GridColDef } from '@mui/x-data-grid'
 import DialogJadwals, { IDialogsJadwalRef } from '../dialogs'
 import { createColumns } from './columns'
@@ -41,8 +41,7 @@ const TableJadwal = () => {
     onEditJadwal: (id: string) => dialogsRef.current?.openEditDialog(id)
   })
 
-  const onBulkUpload = () => dialogsRef.current?.openBulkUpload()
-  const onOpenDialogAdd = () => dialogsRef.current?.openAddDialog()
+  const onOpenDialogAdd = () => dialogsRef.current?.openOptionsDialog()
 
   return (
     <Card>
@@ -62,10 +61,6 @@ const TableJadwal = () => {
         }
         action={
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            <Can I={'generate'} a={'JADWAL'}>
-              <GenerateJadwal isRegenerate={isRegenerate} openDialog={onBulkUpload} />
-            </Can>
-
             <Can I={'create'} a={'JADWAL'}>
               <Button
                 variant='contained'
@@ -202,28 +197,6 @@ const GenerateJadwal = memo(({ isRegenerate, openDialog }: { isRegenerate: boole
 
         toast.success(res.payload.message)
         dispatch(setIsRefresh())
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }
-
-  const onCheckTeoriExist = async () => {
-    setIsLoading(true)
-
-    // @ts-ignore
-    await dispatch(checkJadwalTeoriExist())
-      .then(res => {
-        if (res.meta.requestStatus !== 'fulfilled') {
-          toast.error(res.payload?.response?.data?.message)
-
-          return
-        }
-
-        const content = res?.payload?.content
-
-        setIsTeoriExist(content)
-        onSubmit()
       })
       .finally(() => {
         setIsLoading(false)

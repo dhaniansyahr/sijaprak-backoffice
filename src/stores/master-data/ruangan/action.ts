@@ -5,7 +5,7 @@ export const getAllRuanganLaboratorium = createAsyncThunk(
   'getAll/ruanganLaboratorium',
   async ({ data }: any, { rejectWithValue }) => {
     try {
-      const response = await api.get('/ruangan-laboratorium', data)
+      const response = await api.get('/master-data/ruangan', data)
 
       return response.data
     } catch (error) {
@@ -18,7 +18,7 @@ export const getRuanganLaboratorium = createAsyncThunk(
   'get/ruanganLaboratorium',
   async ({ id }: { id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/ruangan-laboratorium/${id}`)
+      const response = await api.get(`/master-data/ruangan/${id}`)
 
       return response.data
     } catch (error) {
@@ -31,7 +31,7 @@ export const createRuanganLaboratorium = createAsyncThunk(
   'create/ruanganLaboratorium',
   async ({ data }: { data: any }, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/ruangan-laboratorium`, data)
+      const response = await api.post(`/master-data/ruangan`, data)
 
       return response.data
     } catch (error) {
@@ -44,7 +44,7 @@ export const updateRuanganLaboratorium = createAsyncThunk(
   'update/ruanganLaboratorium',
   async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/ruangan-laboratorium/${id}`, data)
+      const response = await api.put(`/master-data/ruangan/${id}`, data)
 
       return response.data
     } catch (error) {
@@ -57,7 +57,7 @@ export const assignKepalaLab = createAsyncThunk(
   'assign/ruanganLaboratorium',
   async ({ data, id }: { data: any; id: string }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/ruangan-laboratorium/assign-kepala-lab/${id}`, data)
+      const response = await api.put(`/master-data/ruangan/assign-kepala-lab/${id}`, data)
 
       return response.data
     } catch (error) {
@@ -70,7 +70,7 @@ export const deleteRuanganLaboratorium = createAsyncThunk(
   'delete/ruanganLaboratorium',
   async ({ data }: { data: any }, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/ruangan-laboratorium`, data)
+      const response = await api.delete(`/master-data/ruangan`, data)
 
       return response.data
     } catch (error) {

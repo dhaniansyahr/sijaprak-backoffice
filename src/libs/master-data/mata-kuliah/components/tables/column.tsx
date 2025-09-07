@@ -1,6 +1,12 @@
 import { GridColDef } from '@mui/x-data-grid'
+import MenuDropdown from './MenuDropdown'
 
-export function createColumns(): GridColDef[] {
+interface ICreateColumnProps {
+  onEdit: (id: string) => void
+  onDelete: (id: string) => void
+}
+
+export function createColumns({ onEdit, onDelete }: ICreateColumnProps): GridColDef[] {
   return [
     {
       flex: 0.25,
@@ -39,6 +45,15 @@ export function createColumns(): GridColDef[] {
       field: 'bidangMinat',
       headerName: 'Bidang Minat',
       sortable: false
+    },
+    {
+      flex: 0.25,
+      field: 'actions',
+      headerName: 'Aksi',
+      sortable: false,
+      renderCell: params => {
+        return <MenuDropdown onEdit={() => onEdit(params.row?.id)} onDelete={() => onDelete(params.row?.id)} />
+      }
     }
   ]
 }
